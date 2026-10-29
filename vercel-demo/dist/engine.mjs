@@ -161,22 +161,23 @@ export function interceptionCurve(input={},steps=20) {
 export function simulate(input={}) {
   const c=normalize(input),expected=expectedStats(c);
   const source=rng(c.seed,0x243f6a88),channel=rng(c.seed,0x85a308d3),bob=rng(c.seed,0x13198a2e),eve=rng(c.seed,0x03707344),sampling=rng(c.seed,0xa4093822);
-  const t=10**(-c.lossDb/10),bits=[],trace=[],counts={pulses:c.pulses,emitted:0,vacuum:0,multiPhoton:0,detected:0,sifted:0,sample:0,keyBits:0,errors:0,siftedErrors:0};
+  const t=10**(-c.lossDb/10),bits=[],trace=[],audit=[],counts={pulses:c.pulses,emitted:0,vacuum:0,multiPhoton:0,detected:0,sifted:0,sample:0,keyBits:0,errors:0,siftedErrors:0};
   for(let i=0;i<c.pulses;i++) {
     let photons=1;
     if(c.source==='wcp'){photons=-1;let product=1;do{photons++;product*=source();}while(product>Math.exp(-c.mu));}
     if(photons)counts.emitted++;else counts.vacuum++;
     if(photons>1)counts.multiPhoton++;
-    const aliceBit=source()<.5?0:1,basisDraw=source(),aliceBasis=c.protocol==='BB84'?(basisDraw<.5?0:1):aliceBit;
+    const aliceDraw=source(),aliceBit=aliceDraw<.5?0:1,basisDraw=source(),aliceBasis=c.protocol==='BB84'?(basisDraw<.5?0:1):aliceBit;
     const signalDraw=channel(),darkDraw=channel(),noiseDraw=channel();
-    const bobBasis=bob()<.5?0:1,bobDraw=bob();
-    const eveForward=eve(),eveIntercept=eve(),eveBasis=eve()<.5?0:1,eveDraw=eve();
+    const bobBasisDraw=bob(),bobBasis=bobBasisDraw<.5?0:1,bobDraw=bob();
+    const eveForward=eve(),eveIntercept=eve(),eveBasisDraw=eve(),eveBasis=eveBasisDraw<.5?0:1,eveDraw=eve();
     let stateBasis=aliceBasis,stateBit=c.protocol==='BB84'?aliceBit:0;
     let signalProbability=1-(1-t*c.efficiency)**photons;
     if(c.attack==='pns') signalProbability=photons>=2&&eveForward<expected.forward?1-(1-c.efficiency)**(photons-1):0;
     const signal=signalDraw<signalProbability,dark=darkDraw<c.darkCount;
-    const event=i<32?{pulse:i+1,photons,aliceBit,aliceBasis,bobBasis,bobOutcome:null,bobBit:null,signal,darkOnly:!signal&&dark,detected:signal||dark,conclusive:false,error:false,status:'lost',eveAction:c.attack==='pns'?(photons>=2&&eveForward<expected.forward?'split':'block'):c.attack==='ir'&&eveIntercept<c.interception&&signal?'intercept':'none'}:null;
-    if(event)trace.push(event);
+    // Keep a bounded audit from the same trials; recording makes no extra RNG calls.
+    const event=i<128?{pulse:i+1,photons,aliceBit,aliceBasis,bobBasis,bobOutcome:null,bobBit:null,signal,darkOnly:!signal&&dark,detected:signal||dark,conclusive:false,error:false,sampled:false,status:'lost',signalProbability,noiseFlipped:signal&&noiseDraw<c.noise,draws:{aliceBit:aliceDraw,aliceBasis:basisDraw,bobBasis:bobBasisDraw,bobOutcome:bobDraw,signal:signalDraw,dark:darkDraw,noise:noiseDraw,eveInterception:eveIntercept,eveBasis:eveBasisDraw,eveOutcome:eveDraw,eveForward},eveAction:c.attack==='pns'?(photons>=2&&eveForward<expected.forward?'split':'block'):c.attack==='ir'&&eveIntercept<c.interception&&signal?'intercept':'none'}:null;
+    if(event){audit.push(event);if(i<32)trace.push(event);}
     if(!signal&&!dark)continue;
     counts.detected++;
     if(c.attack==='ir'&&eveIntercept<c.interception){stateBit=eveBasis===stateBasis?stateBit:(eveDraw<.5?0:1);stateBasis=eveBasis;}
@@ -186,12 +187,19 @@ export function simulate(input={}) {
     if(event)Object.assign(event,{bobOutcome:measured,conclusive,status:conclusive?'kept':'discarded'});
     if(!conclusive)continue;
     const inferred=c.protocol==='BB84'?measured:1-bobBasis;
-    if(event)Object.assign(event,{bobBit:inferred,error:inferred!==aliceBit,status:inferred!==aliceBit?'error':'kept'});
+    if(event)Object.assign(event,{bobBit:inferred,siftedIndex:bits.length,error:inferred!==aliceBit,status:inferred!==aliceBit?'error':'kept'});
     const wrong=Number(inferred!==aliceBit);bits.push(wrong);counts.siftedErrors+=wrong;
   }
   counts.sifted=bits.length;counts.sample=Math.floor(bits.length*c.sampleFraction);
-  // Uniform sample without replacement; sampled bits are permanently discarded.
-  for(let i=0;i<counts.sample;i++){const j=i+Math.floor(sampling()*(bits.length-i));[bits[i],bits[j]]=[bits[j],bits[i]];counts.errors+=bits[i];}
+  // Track only audited positions through the actual sample shuffle, not another sample.
+  const tracked=new Map(audit.filter(e=>e.conclusive).map(e=>[e.siftedIndex,e]));
+  for(let i=0;i<counts.sample;i++){
+    const draw=sampling(),j=i+Math.floor(draw*(bits.length-i));
+    const disclosed=tracked.get(j),moved=tracked.get(i);
+    if(disclosed)Object.assign(disclosed,{sampled:true,samplingDraw:draw,sampleOrder:i+1});
+    tracked.delete(i);tracked.delete(j);if(moved&&i!==j)tracked.set(j,moved);
+    [bits[i],bits[j]]=[bits[j],bits[i]];counts.errors+=bits[i];
+  }
   counts.keyBits=counts.sifted-counts.sample;
   const qber=counts.sample?counts.errors/counts.sample:0,qUpper=qberUpper(qber,counts.sample,c.eps),gain=counts.detected/c.pulses;
   const delta=c.source==='wcp'?(gain?Math.max(0,1-expected.multiPhotonProbability/gain):0):1;
@@ -200,7 +208,9 @@ export function simulate(input={}) {
   const privateFraction=delta>0&&qUpper/delta<.5?delta*(1-h2(qUpper/delta)):0;
   const b92Bound=c.protocol==='B92'?b92PhaseBound({source:c.source,pulses:c.pulses,detected:counts.detected,sifted:counts.sifted,errors:counts.errors,sample:counts.sample,eps:c.eps}):null;
   const privacy=c.protocol==='B92'?(b92Bound.supported?1-h2(b92Bound.phaseUpper):0):privateFraction;
-  let finalBits=counts.sample?Math.max(0,Math.floor(counts.keyBits*(privacy-1.16*h2(qber))-finitePenalty-verification-authentication)):0;
+  const rawBudget=counts.keyBits*(privacy-1.16*h2(qber))-finitePenalty-verification-authentication;
+  const budget={privacyFraction:privacy,privacyBits:counts.keyBits*privacy,reconciliationLeakage:counts.keyBits*1.16*h2(qber),rawBudget,beforeChecks:counts.sample?Math.max(0,Math.floor(rawBudget)):0};
+  let finalBits=budget.beforeChecks;
   let status='ACCEPT';const warnings=['Educational simulation only; no cryptographic keys or security certification.'];
   if(c.protocol==='BB84'&&counts.sample&&qber>=.05)status='ALERT';
   if(!counts.sample||!counts.keyBits||finalBits<c.requiredBits)status='INSUFFICIENT';
@@ -215,5 +225,5 @@ export function simulate(input={}) {
   if(gainMismatch)warnings.push('Observed detection gain differs from the honest channel expectation.');
   if(c.source==='wcp')warnings.push('No decoy states: all multiphoton emissions are conservatively tagged as compromised.');
   if(c.darkCount)warnings.push('Dark-only detections produce random outcomes; simultaneous signal and dark clicks use the signal outcome.');
-  return {config:c,counts,trace,detected:counts.detected,sifted:counts.sifted,sample:counts.sample,keyBits:counts.keyBits,errors:counts.errors,qber,siftedQber:counts.sifted?counts.siftedErrors/counts.sifted:0,qUpper,b92Bound,expectedQber:expected.qber,expectedConclusive:expected.conclusive,gain,expectedGain:expected.honestGain,attackExpectedGain:expected.gain,gainMismatch,delta,finalBits,status,warnings,finitePenalty,verification,authentication,pipeline:{sent:c.pulses,detected:counts.detected,sifted:counts.sifted,sampled:counts.sample,remaining:counts.keyBits,final:finalBits},detectionProbability:detectionProbability(counts.sample,expected.qber,c.protocol==='BB84'?.11:.15)};
+  return {config:c,counts,trace,audit,budget,detected:counts.detected,sifted:counts.sifted,sample:counts.sample,keyBits:counts.keyBits,errors:counts.errors,qber,siftedQber:counts.sifted?counts.siftedErrors/counts.sifted:0,qUpper,b92Bound,expectedQber:expected.qber,expectedConclusive:expected.conclusive,gain,expectedGain:expected.honestGain,attackExpectedGain:expected.gain,gainMismatch,delta,finalBits,status,warnings,finitePenalty,verification,authentication,pipeline:{sent:c.pulses,detected:counts.detected,sifted:counts.sifted,sampled:counts.sample,remaining:counts.keyBits,final:finalBits},detectionProbability:detectionProbability(counts.sample,expected.qber,c.protocol==='BB84'?.11:.15)};
 }

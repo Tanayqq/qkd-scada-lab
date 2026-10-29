@@ -18,6 +18,39 @@ test('photon replay records match actual small-run detection, sifting and error 
   }
   assert.equal(run({pulses:1000}).trace.length,32);
 });
+test('Monte Carlo audit reconstructs all small-run counts and actual disclosed samples', () => {
+  for(const protocol of ['BB84','B92'])for(const sampleFraction of [0,.25,.9,1])for(const options of [{noise:0},{noise:.1},{attack:'ir'},{lossDb:8},{source:'wcp',mu:.8},{efficiency:0,darkCount:.4}]){
+    const r=run({protocol,pulses:100,sampleFraction,...options});
+    const kept=r.audit.filter(e=>e.conclusive),sampled=kept.filter(e=>e.sampled),remaining=kept.filter(e=>!e.sampled);
+    assert.equal(r.audit.length,100);assert.deepEqual(r.trace,r.audit.slice(0,32));
+    assert.equal(r.audit.filter(e=>e.detected).length,r.detected);
+    assert.equal(kept.length,r.sifted);assert.equal(sampled.length,r.sample);assert.equal(remaining.length,r.keyBits);
+    assert.equal(sampled.filter(e=>e.aliceBit!==e.bobBit).length,r.errors);
+    assert.equal(r.qber,sampled.length?r.errors/sampled.length:0);
+    assert.equal(new Set(sampled.map(e=>e.sampleOrder)).size,r.sample);
+    for(const e of r.audit){
+      for(const value of Object.values(e.draws))assert.ok(value>=0&&value<1);
+      assert.equal(e.aliceBit,e.draws.aliceBit<.5?0:1);
+      assert.equal(e.bobBasis,e.draws.bobBasis<.5?0:1);
+      assert.equal(e.signal,e.draws.signal<e.signalProbability);
+      assert.equal(e.noiseFlipped,e.signal&&e.draws.noise<r.config.noise);
+      if(e.sampled){assert.ok(e.conclusive);assert.ok(e.samplingDraw>=0&&e.samplingDraw<1);}
+    }
+  }
+  assert.equal(run({pulses:10000}).audit.length,128);
+});
+
+test('recorded budget reproduces the final estimate and preserves rejection checks', () => {
+  for(const protocol of ['BB84','B92'])for(const options of [{noise:0},{noise:.005},{attack:'ir'},{efficiency:0},{source:'wcp'}]){
+    const r=run({protocol,pulses:20000,...options}),b=r.budget;
+    assert.equal(b.privacyBits,r.keyBits*b.privacyFraction);
+    assert.equal(b.reconciliationLeakage,r.keyBits*1.16*h2(r.qber));
+    assert.equal(b.rawBudget,r.keyBits*(b.privacyFraction-1.16*h2(r.qber))-r.finitePenalty-r.verification-r.authentication);
+    assert.equal(b.beforeChecks,r.sample?Math.max(0,Math.floor(b.rawBudget)):0);
+    assert.equal(r.finalBits,['REJECT','UNSUPPORTED'].includes(r.status)?0:b.beforeChecks);
+  }
+});
+
 test('interception graph uses exact protocol-specific analytic curves without random sweep data', () => {
   const [bb84,b92]=interceptionCurve({noise:0},20);
   assert.equal(bb84.points.length,21);
