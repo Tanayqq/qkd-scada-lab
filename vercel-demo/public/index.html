@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#172e3c"><meta name="description" content="Explore BB84 and B92 quantum key distribution, eavesdropping, and finite-sample limits in a reproducible educational lab."><title>QKD Lab · Quantum key distribution simulator</title><style>@charset "UTF-8";
+:root{color-scheme:light;--ink:#172f3b;--muted:#667770;--paper:#f5f5ed;--line:#dcdfd4;--green:#267b65;--orange:#a9562b;--soft:#e6ece1;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--paper)}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,a,input,select,summary{touch-action:manipulation}button{cursor:pointer}button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #de8e48;outline-offset:3px}button:hover{filter:brightness(.96)}a{color:var(--green)}.topbar{height:80px;padding:0 36px;display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#f4f5eb}.brand{color:inherit;text-decoration:none;font-size:24px;letter-spacing:1px}.brand b{font-weight:400;color:#afc6b4}.brandmark{display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;border:1px solid #91a795;border-radius:50%;margin-right:8px}.topnote,.local,.section-label,footer{font-size:10px;font-weight:700;letter-spacing:1.5px}.local{letter-spacing:.4px;font-weight:400}.local i{display:inline-block;width:6px;height:6px;background:#b9d688;border-radius:50%;margin-right:8px}.workspace{display:grid;grid-template-columns:292px minmax(0,1fr);max-width:1700px;margin:auto}.controls{padding:34px 25px;border-right:1px solid var(--line);background:#eeefe6}.section-label{color:var(--muted);line-height:1.5}h2{font-size:21px;letter-spacing:-.6px;margin:9px 0 14px}.controls h2{font-size:24px}.muted{color:var(--muted);line-height:1.6}.controls>p{font-size:13px;margin-bottom:29px}label{display:block;font-size:12px;font-weight:700;margin:20px 0 9px}input:not([type=range]),select{width:100%;border:1px solid #cbd1c4;background:#fafbf5;border-radius:6px;padding:11px 10px;color:var(--ink);font-size:13px}input[type=range]{width:100%;accent-color:var(--green);margin:7px 0 9px}output{float:right;color:var(--green);font-weight:400}.advanced{border-top:1px solid #d7dccf;margin-top:20px;padding-top:17px}.advanced summary{font-size:12px;cursor:pointer;font-weight:700}.advanced label{font-size:11px}.run-button{display:flex;justify-content:space-between;width:100%;background:var(--ink);color:white;border:0;border-radius:7px;padding:16px;font-size:13px;margin-top:26px}.small{font-size:11px;line-height:1.6}.control-foot{font-size:10px;margin-top:15px}.form-error{color:#a33d28;font-size:12px;line-height:1.5}main{min-width:0;padding:35px 37px 20px}.hero{display:flex;justify-content:space-between;gap:30px;align-items:center}.hero h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(32px,3.1vw,49px);line-height:1.12;letter-spacing:-1.4px;margin:16px 0}.hero h1 em{font-weight:400;color:#557561}.hero p{max-width:565px;font-size:13px;color:var(--muted);line-height:1.7;margin:15px 0 27px}.edition{font-family:Georgia,serif;font-size:21px;color:#718270;border:1px solid #bbc5b4;width:91px;height:91px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.5;transform:rotate(10deg);flex-shrink:0}.presets{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0}.presets>span{font-size:9px;font-weight:700;letter-spacing:1px;margin-right:9px;color:var(--muted)}.presets button{font-size:10px;background:#e8ecdf;border:1px solid transparent;border-radius:20px;padding:8px 11px;color:var(--ink)}.presets button:hover{border-color:#879c82}.run-meta{display:flex;align-items:center;gap:10px;padding:20px 0 13px;font-size:10px;color:var(--muted);min-height:51px;flex-wrap:wrap}#stale{color:var(--orange);font-weight:700}.text-button{margin-left:auto;border:0;background:none;color:var(--green);font-size:11px;padding:4px 0}.text-button:disabled{opacity:.4}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:9px;background:#fbfcf6;overflow:hidden;margin-bottom:21px}.metric{padding:20px 17px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px}.metric:last-child{border:0}.metric>span{font-size:11px;color:var(--muted)}.metric strong{font-family:Georgia,serif;font-weight:400;font-size:34px;letter-spacing:-1px}.metric small{font-size:9px;color:var(--muted);line-height:1.5}.metric.verdict{background:#e5ecdf}.metric.verdict strong{font-family:Arial,sans-serif;font-size:19px;letter-spacing:-.5px;line-height:1.4;margin:auto 0}.panel{background:#fbfcf7;border:1px solid var(--line);border-radius:9px;padding:21px;margin-bottom:20px}.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:15px}.panel h2{font-size:22px;margin:7px 0 18px}.panel .section-label{font-size:9px}.pill{font-size:10px;border:1px solid #b7c8b9;color:var(--green);padding:5px 10px;border-radius:20px}.channel{width:100%;height:auto;display:block;border-radius:8px}.channel-stats{display:flex;justify-content:space-between;gap:15px;padding-top:18px;font-size:10px;color:var(--muted);flex-wrap:wrap}.channel-stats b{color:var(--ink);font-weight:400;margin-left:7px}.two-column{display:grid;grid-template-columns:1fr 1fr;gap:20px}.two-column .panel{min-width:0}.pipeline{padding:5px 0 10px}.pipeline-row{display:grid;grid-template-columns:85px 1fr 60px;align-items:center;gap:10px;font-size:11px;margin-bottom:15px}.bar-track{height:14px;background:#e9ede2;border-radius:3px;overflow:hidden}.bar{height:100%;background:#85a795;min-width:0;border-radius:3px}.pipeline-row:last-child .bar{background:var(--green)}.pipeline-row b{font-weight:400;text-align:right}.error-row{margin:8px 0 22px}.error-caption{display:flex;justify-content:space-between;font-size:11px;margin-bottom:9px}.error-row .bar-track{height:9px}.error-row:nth-child(2) .bar{background:var(--green)}.error-row:nth-child(3) .bar{background:#c68a51}.error-axis{font-size:9px;color:var(--muted);display:flex;justify-content:space-between;margin-top:-11px}.warnings{font-size:11px;color:#86572d;line-height:1.6}.warnings p{padding:9px 11px;background:#f5eddd;border-radius:4px;margin:8px 0}.history{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.history-card{border:1px solid var(--line);border-radius:6px;padding:14px;min-width:0}.history-title{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);gap:10px}.history-card>strong{display:block;font-family:Georgia,serif;font-weight:400;font-size:24px;margin:14px 0 10px}.history-card>p{font-size:10px;line-height:1.6;margin:5px 0 0;color:var(--muted)}.history-card .bar-track{height:5px}.methodology summary{display:flex;justify-content:space-between;cursor:pointer;font-size:12px;font-weight:700}.method-content{font-size:12px;color:var(--muted);line-height:1.8;max-width:900px;padding-top:12px}footer{color:var(--muted);display:flex;justify-content:space-between;gap:20px;line-height:1.7;letter-spacing:.7px;font-size:8px;margin:26px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.skip{position:absolute;left:10px;top:-80px;padding:12px;background:white;z-index:3}.skip:focus{top:10px}[hidden]{display:none!important}@media(min-width:1500px){main{padding:40px 50px}.hero p{max-width:700px}.hero h1{font-size:51px}}@media(max-width:1150px){.topnote{display:none}.workspace{grid-template-columns:260px minmax(0,1fr)}main{padding:28px 24px}.controls{padding:28px 20px}.metric{padding:17px 12px}.metric strong{font-size:29px}.metric.verdict strong{font-size:16px}.two-column{grid-template-columns:1fr}.history{grid-template-columns:repeat(2,minmax(0,1fr))}.edition{display:none}}@media(max-width:760px){.topbar{height:65px;padding:0 20px}.local{font-size:9px}.workspace{display:flex;flex-direction:column}.controls{border:0;border-bottom:1px solid var(--line);padding:25px 20px}.controls>p{margin-bottom:16px}.controls form{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}.controls form>label,.controls form>input,.controls form>select{grid-column:1/-1}.controls form>.advanced{grid-column:1/-1}.run-button,.control-foot,.form-error{grid-column:1/-1}.run-button{margin-top:20px}.controls h2{margin-bottom:8px}.controls>p{font-size:12px}.controls form>label{margin-top:14px}main{padding:27px 18px}.hero h1{font-size:36px}.hero .section-label{font-size:8px}.metrics{grid-template-columns:1fr 1fr}.metric:nth-child(2){border-right:0}.metric:nth-child(-n+2){border-bottom:1px solid var(--line)}.metric{min-height:135px}.panel{padding:17px}.channel{min-height:112px}.channel-stats{gap:10px;font-size:9px}.presets{gap:7px}.presets>span{width:100%;margin-bottom:3px}.history{grid-template-columns:1fr 1fr}footer{display:block}footer span{display:block;margin-bottom:7px}}@media(prefers-reduced-motion:no-preference){button{transition:background .15s ease,filter .15s ease}.bar{transition:width .35s ease}}
+
+.comparison-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.comparison-card{border:1px solid var(--line);border-radius:7px;padding:18px;min-width:0}.comparison-card h3{margin:0 0 16px;font-family:Georgia,serif;font-size:25px;font-weight:400}.comparison-card dl{display:grid;grid-template-columns:1fr 1fr;gap:13px 12px;font-size:12px;line-height:1.5}.comparison-card dt{color:var(--muted)}.comparison-card dd{margin:0;text-align:right;overflow-wrap:anywhere}.inspect-button{border:1px solid var(--green);color:var(--green);background:transparent;border-radius:5px;padding:9px 13px;margin-top:12px}.inspect-button[aria-pressed=true]{background:var(--green);color:white}#comparison-verdict{font-size:14px;line-height:1.7} @media(max-width:500px){.comparison-cards{grid-template-columns:1fr}}
+
+.playback-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:15px}.playback-controls .inspect-button{margin:0}.playback-controls .text-button{margin:0 8px 0 0}.playback-controls label{margin:0;font-size:11px}.playback-controls select{width:auto;padding:8px;font-size:11px}.photon-readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.photon-readout>div{padding:12px;background:#edf0e7;border-radius:6px;min-width:0}.photon-readout span{display:block;font-size:10px;color:var(--muted);margin-bottom:7px}.photon-readout strong{font-size:12px;line-height:1.6;font-weight:400;overflow-wrap:anywhere}.trace-bits{display:flex;flex-wrap:wrap;gap:5px;min-height:28px}.trace-chip{display:inline-flex;justify-content:center;align-items:center;width:24px;height:24px;border-radius:4px;font-size:11px;background:#e3e7dc;color:#667770}.trace-kept{background:#cfe7d9;color:#185b43}.trace-error{background:#f1d3bf;color:#913d20}.trace-lost{background:#eeeae2;color:#8f8b83}.graph-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.graph-grid figure{margin:0;min-width:0}.graph-grid h3{font-size:14px;font-weight:400;margin:8px 0 12px}.plot{display:block;width:100%;height:auto;background:#f4f6ef;border-radius:8px}.plot-label{font:12px Arial,sans-serif;fill:#5b7066}.plot-value{font:13px Arial,sans-serif}.graph-grid figcaption{margin-top:10px}.photon-motion{opacity:0;transform-box:view-box;animation-fill-mode:forwards;animation-timing-function:linear}.motion-a{animation-name:travel-a}.motion-b{animation-name:travel-b}.motion-error circle{fill:#b7472d}@keyframes travel-a{0%{opacity:0;transform:translateX(0)}10%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateX(var(--travel,540px))}}@keyframes travel-b{0%{opacity:0;transform:translateX(0)}10%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateX(var(--travel,540px))}}@media(max-width:1100px){.graph-grid{grid-template-columns:1fr}.photon-readout{grid-template-columns:1fr 1fr}}@media(prefers-reduced-motion:reduce){.photon-motion{animation:none;transform:translateX(var(--travel,540px))}.motion-a,.motion-b{opacity:.65}}
+
+</style></head>
+<body>
+<a class="skip" href="#results">Skip to results</a>
+<header class="topbar"><a class="brand" href="#results"><span class="brandmark" aria-hidden="true">⟷</span> QKD <b>LAB</b></a><span class="topnote">QUANTUM COMMUNICATIONS / EXPERIMENT 01</span><span class="local"><i></i> Browser-local simulation</span></header>
+<nav style="padding:16px 5%;background:#e2eadc;border-bottom:1px solid #cbd7c6"><a href="https://vercel-demo-navy-psi.vercel.app/live.html" style="color:#173743;font-weight:700">Open live sender / receiver / attacker demo →</a><span style="font-size:12px;margin-left:14px">Connect different devices in one shared room · internet required</span></nav>
+<div class="workspace">
+<aside class="controls" aria-labelledby="control-title"><div class="section-label">EXPERIMENT SETUP</div><h2 id="control-title">Build your channel.</h2><p class="muted">Choose a protocol, introduce an adversary, and observe what survives.</p>
+<form id="experiment">
+<label for="protocol">Protocol</label><select id="protocol" name="protocol"><option>BB84</option><option>B92</option><option value="compare">Compare BB84 and B92</option></select>
+<label for="pulses">Transmitted pulses</label><input id="pulses" name="pulses" type="number" min="100" max="1000000" step="1" value="10000" required>
+<label for="attack">Eavesdropping scenario</label><select id="attack" name="attack"><option value="none">No eavesdropper</option><option value="ir">Intercept &amp; resend</option><option value="pns">Photon-number splitting (PNS)</option></select>
+<label for="noise">Channel bit-flip probability <output id="noise-value" for="noise">5%</output></label><input id="noise" name="noise" type="range" min="0" max="0.5" step="0.005" value="0.05">
+<label for="interception">Intercept-resend fraction <output id="interception-value" for="interception">100%</output></label><input id="interception" name="interception" type="range" min="0" max="1" step="0.05" value="1">
+<details class="advanced"><summary>Channel &amp; source settings</summary><label for="lossDb">Channel loss (dB)</label><input id="lossDb" name="lossDb" type="number" min="0" max="60" step="0.1" value="0" required><label for="efficiency">Detector efficiency (0–1)</label><input id="efficiency" name="efficiency" type="number" min="0" max="1" step="0.01" value="1" required><label for="darkCount">Dark-count probability (0–1)</label><input id="darkCount" name="darkCount" type="number" min="0" max="1" step="0.0001" value="0" required><label for="source">Photon source</label><select id="source" name="source"><option value="ideal">Ideal single photon</option><option value="wcp">Weak coherent pulses</option></select><label for="mu">Mean photons per pulse (μ)</label><input id="mu" name="mu" type="number" min="0.01" max="5" step="0.01" value="0.5" required></details>
+<details class="advanced"><summary>Estimation &amp; reproducibility</summary><label for="sampleFraction">Disclosed sample fraction (0–1)</label><input id="sampleFraction" name="sampleFraction" type="number" min="0.01" max="0.9" step="0.01" value="0.25" required><label for="eps">Parameter-estimation failure probability</label><input id="eps" name="eps" type="number" min="0.000000000001" max="0.1" step="any" value="0.000001" required><label for="requiredBits">Target estimated bits</label><input id="requiredBits" name="requiredBits" type="number" min="1" max="1000000" step="1" value="128" required><label for="seed">Random seed</label><input id="seed" name="seed" type="number" min="0" max="4294967295" step="1" value="42" required><p class="small muted">The same settings and seed reproduce the same experiment.</p></details>
+<p id="form-error" class="form-error" role="alert" hidden></p><button class="run-button" type="submit"><span>Run experiment</span><span aria-hidden="true">↗</span></button><p class="small muted control-foot">Simulation only. No real quantum hardware or usable secret keys.</p>
+</form></aside>
+<main id="results" tabindex="-1">
+<div class="hero"><div><div class="section-label">THE QUANTUM KEY DISTRIBUTION WORKBENCH</div><h1>A shared secret.<br><em>An observable disturbance.</em></h1><p>Explore how quantum protocols generate key material—and where noise, loss, and attacks break the promise.</p></div><span class="edition">BB84<br>+ B92</span></div>
+<div class="presets" aria-label="Experiment presets"><span>QUICK EXPERIMENTS</span><button type="button" data-preset="baseline">01 · Baseline / 5% noise</button><button type="button" data-preset="ir">02 · Intercept &amp; resend</button><button type="button" data-preset="pns">03 · Photon splitting</button><button type="button" data-preset="b92">04 · Explore B92</button></div>
+<div class="run-meta"><span id="run-description">Preparing experiment…</span><span id="stale" hidden>Settings changed · run to update</span><button id="download" class="text-button" type="button" disabled>Export run ↓</button></div>
+<section id="comparison" class="panel" aria-labelledby="comparison-title" hidden><div class="section-label">PROTOCOL COMPARISON / SAME SETTINGS AND SEED</div><h2 id="comparison-title">Which protocol meets your target?</h2><p id="comparison-verdict" role="status"></p><p class="small muted">Compare measured performance and modeled key budgets. No actual secret keys are generated. BB84 and single-photon B92 use distinct privacy bounds. The recommendation ranks estimated output under their stated assumptions, not intrinsic key security.</p><div id="comparison-cards" class="comparison-cards"></div><p id="comparison-detail" class="small muted"></p></section><section class="metrics" aria-label="Key experiment results"><article class="metric"><span>Observed QBER</span><strong id="metric-qber">—</strong><small>Errors in the disclosed sample</small></article><article class="metric"><span>Conservative QBER bound</span><strong id="metric-bound">—</strong><small>One-sided finite-sample estimate</small></article><article class="metric"><span>Estimated final bits</span><strong id="metric-bits">—</strong><small id="metric-target">Target: 128 bits</small></article><article class="metric verdict"><span>Experiment outcome</span><strong id="metric-status">—</strong><small id="metric-status-note">Educational estimate</small></article></section>
+<section class="panel channel-panel"><div class="panel-heading"><div><div class="section-label">01 / QUANTUM CHANNEL</div><h2>Follow the photons.</h2></div><span class="pill" id="protocol-label">BB84</span></div><svg class="channel" viewBox="0 0 840 154" role="img" aria-labelledby="channel-title channel-desc"><title id="channel-title">Alice sends quantum states to Bob</title><desc id="channel-desc">Eve may intercept the quantum channel depending on the chosen attack.</desc><defs><pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1" fill="#cbd3cc"/></pattern></defs><rect width="840" height="154" fill="url(#dots)"/><path d="M145 71H695" stroke="#7faaa0" stroke-width="2" stroke-dasharray="5 7"/><g aria-hidden="true" fill="#2e8370"><circle cx="238" cy="71" r="6"/><circle cx="280" cy="71" r="4"/><circle cx="560" cy="71" r="6"/><circle cx="602" cy="71" r="4"/></g><g id="photon-motion" class="photon-motion" aria-hidden="true"><circle cx="155" cy="71" r="10" fill="#267b65" stroke="#ffffff" stroke-width="3"/></g><g fill="#173743"><rect x="44" y="29" width="100" height="83" rx="16"/><rect x="696" y="29" width="100" height="83" rx="16"/></g><g fill="#fff" text-anchor="middle" font-family="system-ui" font-size="15"><text x="94" y="66" font-weight="700">ALICE</text><text x="94" y="90" font-size="12">prepare &amp; send</text><text x="746" y="66" font-weight="700">BOB</text><text x="746" y="90" font-size="12">measure</text></g><rect id="eve-bg" x="355" y="27" width="130" height="87" rx="16" fill="#e7ece5" stroke="#b5c1b7"/><text id="eve-title" x="420" y="65" text-anchor="middle" fill="#53665d" font-family="system-ui" font-size="15" font-weight="700">EVE ABSENT</text><text id="eve-caption" x="420" y="88" text-anchor="middle" fill="#53665d" font-family="system-ui" font-size="12">unobserved channel</text><text x="420" y="143" text-anchor="middle" fill="#68766f" font-family="system-ui" font-size="12">Quantum channel → measurement → authenticated classical discussion (assumed)</text></svg><div class="playback-controls"><button id="trace-play" type="button" class="inspect-button">Play photons</button><button id="trace-step" type="button" class="inspect-button">Next photon</button><button id="trace-reset" type="button" class="text-button">Reset</button><label for="trace-speed">Speed</label><select id="trace-speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></div><p id="trace-status" class="small" role="status">Ready to replay.</p><div class="photon-readout"><div><span>Alice prepares</span><strong id="trace-alice">—</strong></div><div><span>Eve / channel</span><strong id="trace-eve">—</strong></div><div><span>Bob measures</span><strong id="trace-bob">—</strong></div><div><span>Sifting decision</span><strong id="trace-decision">—</strong></div></div><div id="trace-bits" class="trace-bits" aria-label="Photon outcomes"></div><p class="small muted">Replay of the first 32 simulated pulses, before sampling and privacy amplification. Positions and travel times are illustrative; states, losses, and measurement outcomes come from the selected run. Playback does not change its results.</p><div class="channel-stats"><span>Detection gain <b id="gain">—</b></span><span>Honest expected gain <b id="expected-gain">—</b></span><span>Untagged fraction (δ) <b id="delta">—</b></span><span>Source <b id="source-label">—</b></span><span>Expected QBER <b id="expected-qber">—</b></span></div></section>
+<div class="two-column"><section class="panel"><div class="panel-heading"><div><div class="section-label">02 / KEY PIPELINE</div><h2>What survives?</h2></div><span class="small muted">bits / pulses</span></div><div id="pipeline" class="pipeline"></div><p class="small muted">Sample bits are disclosed and removed. Reconciliation leakage and privacy amplification reduce the remaining estimate.</p><p id="leakage" class="small muted"></p></section><section class="panel"><div class="panel-heading"><div><div class="section-label">03 / ERROR ANALYSIS</div><h2>Read the disturbance.</h2></div></div><div id="error-chart" class="error-chart"></div><p id="error-explanation" class="small muted"></p><p id="b92-bound" class="small muted" hidden></p><p id="thresholds" class="small muted"></p><p id="detection-probability" class="small muted"></p><div id="warnings" class="warnings" aria-live="polite"></div></section></div>
+<section class="panel graph-panel"><div class="section-label">05 / PROTOCOL GRAPHS</div><h2>See the trade-offs.</h2><div class="graph-grid"><figure><h3>Estimated key output</h3><div id="key-graph"></div><figcaption id="key-graph-caption" class="small muted"></figcaption></figure><figure><h3>Intercept-resend sensitivity</h3><div id="sensitivity-graph"></div><figcaption id="sensitivity-caption" class="small muted"></figcaption></figure></div></section><section class="panel history-panel"><div class="panel-heading"><div><div class="section-label">04 / EXPERIMENT NOTEBOOK</div><h2>Compare your runs.</h2></div><span class="small muted">Latest 6 · this session</span></div><div id="history" class="history"></div></section>
+<!-- SCADA_PANEL_START --><section id="scada-lab" class="panel" aria-labelledby="scada-title">
+<style>
+#scada-lab{margin-top:24px}#scada-lab .scada-intro{max-width:800px;font-size:12px;line-height:1.7;color:var(--muted)}#scada-lab .scada-presets{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0}#scada-lab button,#scada-lab select,#scada-lab input{font:inherit}#scada-lab .scada-presets button,#scada-lab .scada-secondary{border:1px solid var(--line);border-radius:5px;background:#edf0e5;color:var(--ink);font-size:11px;padding:9px 12px}#scada-lab .scada-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px;margin:16px 0}#scada-lab label{font-size:11px;margin:0 0 7px}#scada-lab input,#scada-lab select{font-size:12px}#scada-lab input[type=checkbox]{width:auto;accent-color:var(--green)}#scada-lab .scada-check{display:flex;gap:10px;align-items:center;margin:22px 0}#scada-lab details{margin:15px 0}#scada-lab summary{font-size:12px;cursor:pointer}#scada-lab .scada-actions{display:flex;gap:15px;align-items:center;flex-wrap:wrap}#scada-lab .run-button{max-width:230px;margin:0}#scada-lab .scada-stale{color:var(--orange);font-size:11px}#scada-lab .scada-replay{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:25px 0 16px}#scada-lab .scada-replay input{flex:1;min-width:110px}#scada-lab .scada-replay label{margin:0}#scada-lab .scada-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}#scada-lab .scada-stat{padding:15px;background:#edf1e7;border-radius:6px}#scada-lab .scada-stat span{font-size:10px;display:block;color:var(--muted)}#scada-lab .scada-stat strong{display:block;font:25px Georgia,serif;margin:9px 0}#scada-lab .scada-stat small{font-size:10px;color:var(--muted)}#scada-lab .scada-flow{width:100%;height:auto;display:block;background:#f0f2e9;border-radius:7px}#scada-lab .scada-current{font-size:12px;line-height:1.8;margin:10px 0}#scada-lab .scada-plots{display:grid;grid-template-columns:1fr 1fr;gap:15px}#scada-lab .scada-plot{border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0}#scada-lab .scada-plot h3{font-size:12px;margin:0 0 8px}#scada-lab .scada-plot svg{width:100%;height:auto;display:block}#scada-lab .scada-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}#scada-lab .scada-compare-card{border:1px solid var(--line);padding:15px;border-radius:6px;font-size:11px;line-height:1.8}#scada-lab .scada-compare-card h3{margin:0 0 9px;font-size:17px}#scada-lab .scada-logs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}#scada-lab .scada-logs h3{font-size:13px}#scada-lab .scada-log{max-height:300px;overflow:auto;background:#f0f2e9;border-radius:6px;padding:12px;list-style:none;margin:0}#scada-lab .scada-log li{font-size:10px;line-height:1.7;border-bottom:1px solid var(--line);padding:7px 0;overflow-wrap:anywhere}#scada-lab .scada-log li:last-child{border:0}#scada-lab .scada-note{font-size:11px;line-height:1.7;color:var(--muted)}#scada-lab .scada-recommendation{font-size:12px;line-height:1.7;background:#edf1e7;padding:13px;border-radius:5px}#scada-lab .scada-busy{font-size:12px;color:var(--muted)}#scada-lab #scada-error{color:#a33d28;font-size:12px}#scada-lab .scada-play-dot{fill:#267b65}#scada-lab[data-playing=true] .scada-play-dot{animation:scada-pulse 1s infinite alternate}@keyframes scada-pulse{to{opacity:.2}}@media(max-width:1100px){#scada-lab .scada-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){#scada-lab .scada-plots,#scada-lab .scada-logs,#scada-lab .scada-comparison{grid-template-columns:1fr}#scada-lab .scada-summary{grid-template-columns:1fr 1fr}#scada-lab .scada-stat strong{font-size:22px}#scada-lab .scada-flow{min-height:100px}}@media(prefers-reduced-motion:reduce){#scada-lab[data-playing=true] .scada-play-dot{animation:none}}
+</style>
+<div class="panel-heading"><div><div class="section-label">SMART GRID / TIMED TELEMETRY EXPERIMENT</div><h2 id="scada-title">Can the key supply keep the grid connected?</h2></div><span class="pill">SCADA LAB</span></div>
+<p class="scada-intro">Connect the current QKD channel settings to a simulated control center and substation. Follow key generation, key expiry, queued telemetry, and attack recovery over time. This is a browser-local scheduling model; it does not control equipment, send network traffic, or encrypt messages.</p>
+<div class="scada-presets" aria-label="SCADA scenario presets"><button type="button" data-scada-preset="healthy">Healthy channel</button><button type="button" data-scada-preset="ir">Intercept &amp; resend</button><button type="button" data-scada-preset="noise">Noise burst</button><button type="button" data-scada-preset="authenticatedMITM">Authenticated MITM</button><button type="button" data-scada-preset="unauthMITM">Unauthenticated MITM</button><button type="button" data-scada-preset="supplystarved">Key supply starved</button></div>
+<form id="scada-form"><div id="scada-primary-controls" class="scada-controls"></div><details><summary>Timing, key lifecycle &amp; detection controls</summary><div id="scada-advanced-controls" class="scada-controls"></div></details><div class="scada-actions"><button id="scada-run" class="run-button" type="submit"><span>Run SCADA experiment</span><span aria-hidden="true">↗</span></button><span id="scada-stale" class="scada-stale" hidden>Settings changed · run to update</span><button id="scada-export" class="scada-secondary" type="button" disabled>Export full JSON ↓</button></div><p id="scada-error" role="alert" hidden></p><p class="scada-note">Run captures the QKD settings above. Presets update this SCADA form only; click Run to simulate. Compared protocols use the same channel settings. Selecting PNS uses a weak-coherent source for this SCADA experiment. Each 128-bit session-key unit is a modeled budget and identifier, not an encryption key.</p></form>
+<p id="scada-initial" class="scada-busy" role="status">Choose a scenario and click Run SCADA experiment to start. No experiment has run yet.</p>
+<div id="scada-results" hidden>
+<p id="scada-recommendation" class="scada-recommendation"></p><div id="scada-comparison" class="scada-comparison"></div>
+<div class="scada-replay"><label for="scada-view">View protocol</label><select id="scada-view" style="width:auto"></select><button id="scada-play" class="scada-secondary" type="button">Play replay</button><label for="scada-speed">Replay speed</label><select id="scada-speed" style="width:auto"><option value="1">1×</option><option value="5" selected>5×</option><option value="10">10×</option></select><label for="scada-time">Replay time</label><input id="scada-time" type="range" min="0" max="0" step="1" value="0"><output id="scada-clock" for="scada-time">0.0 s</output></div>
+<svg class="scada-flow" viewBox="0 0 800 116" role="img" aria-label="SCADA message path from control center through a key-gated channel to a substation"><path d="M180 46H620" stroke="#8fa699" stroke-width="2" stroke-dasharray="5 5"/><rect x="10" y="14" width="170" height="64" rx="8" fill="#173743"/><rect x="310" y="14" width="180" height="64" rx="8" fill="#dce8d8"/><rect x="620" y="14" width="170" height="64" rx="8" fill="#173743"/><g font-family="Arial,sans-serif" text-anchor="middle" font-size="12"><text x="95" y="42" fill="white">CONTROL CENTER</text><text x="95" y="61" fill="#bdd0c3" font-size="10">commands / telemetry</text><text id="scada-flow-state" x="400" y="42" fill="#173743">KEY-GATED CHANNEL</text><text id="scada-flow-pool" x="400" y="61" fill="#496656" font-size="10">waiting for experiment</text><text x="705" y="42" fill="white">SUBSTATION / RTU</text><text x="705" y="61" fill="#bdd0c3" font-size="10">telemetry / acknowledgements</text><text x="400" y="102" fill="#667770" font-size="10">Replay of simulated events · discrete snapshots · no real network or cryptography</text></g><circle class="scada-play-dot" cx="245" cy="46" r="5"/><circle class="scada-play-dot" cx="555" cy="46" r="5"/></svg>
+<p id="scada-current" class="scada-current" aria-live="polite"></p><p id="scada-keys" class="scada-note"></p>
+<div id="scada-summary" class="scada-summary" aria-label="Full-run SCADA metrics"></div>
+<div class="scada-plots"><section class="scada-plot"><h3>Observed QBER by completed QKD round</h3><div id="scada-qber-chart"></div></section><section class="scada-plot"><h3>Available key pool (keys)</h3><div id="scada-pool-chart"></div></section><section class="scada-plot"><h3>Waiting message queue (messages)</h3><div id="scada-queue-chart"></div></section><section class="scada-plot"><h3>Full-run key supply vs. demand (bits / second)</h3><div id="scada-supply-chart"></div></section></div>
+<p class="scada-note">Orange shading marks the configured attack interval. Blue dashed line: calibrated honest-channel QBER; red points: alarmed rounds. QBER points come from actual simulated rounds; absent points mean no completed round. Key pool and message queue have separate axes and units. Supply is approved estimated output before pool overflow/expiry; demand is a nominal two-direction steady-state budget, which excludes attack and pool-waste overhead. Supply and demand are modeled bit budgets; key reuse is governed by messages per key and expiry.</p>
+<div class="scada-logs"><section><h3>Event log · latest 20 at replay time</h3><ol id="scada-events" class="scada-log"></ol></section><section><h3>Message preview · latest 10 generated at replay time</h3><ol id="scada-messages" class="scada-log"></ol></section></div>
+</div>
+<details><summary>SCADA model assumptions &amp; interpretation</summary><p class="scada-note">This extension budgets estimated QKD bits into simulated key IDs. It models key pooling, directional use, rotation, expiry, telemetry deadlines, transmission delay, and blocking/recovery. It does not implement AES, a one-time pad, TLS, a real key management system, or physical SCADA interfaces. Message payloads are illustrative labels; nonce counters are bookkeeping, not a security guarantee.</p><p class="scada-note">Authenticated runs assume pre-shared trust and an ideal authentication checker. The MITM scenario flags authentication failure under that assumption. It compromises newly negotiated keys only; existing honest keys remain private until rotation. Without authentication, the model can deliver compromised messages while QBER remains low: matching quantum measurements alone do not establish identity. Abnormal QBER is a disturbance alarm, not proof of eavesdropping. Recovery requires the configured number of consecutive eligible clean rounds; the attack ending does not instantly restore service. Both protocols use instructional QKD key budgets. B92 supports the ideal single-photon IID model; weak-coherent B92 key supply is unsupported.</p></details>
+<div id="scada-announcement" class="sr-only" role="status" aria-live="polite"></div>
+</section>
+<!-- SCADA_PANEL_END --><details class="panel methodology"><summary><span>Model assumptions &amp; scientific limits</span><span aria-hidden="true">+</span></summary><div class="method-content"><p>This is a reproducible Monte Carlo teaching model. It samples preparations, measurements, loss, detector efficiency, dark counts, and disclosed test bits. QBER is the fraction of disagreements in that test sample; it is not a direct measurement of Eve.</p><p>BB84's final-bit figure is a conservative educational estimate using a finite-sample error bound, reconciliation overhead, and a privacy-amplification penalty. It is not a composable security certificate or an implemented error-correction protocol. No keys are generated for real use.</p><p>B92 uses two nonorthogonal states and conclusive measurements. Its estimated key budget now uses a phase-error operator witness from the standard B92 filtering model, with IID confidence intervals for errors, conclusive events, and loss. This is not a full composable finite-key proof. Weak-coherent-source B92 key estimates remain unsupported. Weak coherent sources and PNS attacks are exploratory; a decoy-state security proof is not implemented.</p><p>Authentication of the classical channel is assumed. Device imperfections, side channels, timing, detector attacks, and real optical hardware are outside this model. Seeded randomness supports reproducibility and is not cryptographically secure.</p><p>Scientific context: <a href="https://arxiv.org/abs/quant-ph/0212066" target="_blank" rel="noopener noreferrer">Security of quantum key distribution with imperfect devices</a> and <a href="https://arxiv.org/abs/quant-ph/0308048" target="_blank" rel="noopener noreferrer">B92 over a lossy and noisy channel</a>. These references do not certify this implementation.</p></div></details>
+<footer><span>QKD LAB / LEARN BY EXPERIMENTING</span><span>Educational model · all computation stays in your browser</span></footer>
+<div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</main></div><script type="module">// Educational prepare-and-measure model; no generated bits are cryptographic keys.
+const DEFAULTS = {protocol:'BB84',pulses:10000,noise:.05,attack:'none',interception:1,lossDb:0,efficiency:1,darkCount:0,source:'ideal',mu:.5,sampleFraction:.25,seed:42,eps:1e-6,requiredBits:128};
+function normalize(input={}) {
+  const c={...DEFAULTS,...input};
+  for (const [key,values] of Object.entries({protocol:['BB84','B92'],attack:['none','ir','pns'],source:['ideal','wcp']}))
+    if(!values.includes(c[key])) throw new RangeError(`Invalid ${key}`);
+  for(const key of ['noise','interception','efficiency','darkCount','sampleFraction'])
+    if(!Number.isFinite(c[key])||c[key]<0||c[key]>1) throw new RangeError(`${key} must be in [0,1]`);
+  for(const key of ['pulses','seed','requiredBits']) if(!Number.isSafeInteger(c[key])) throw new RangeError(`${key} must be an integer`);
+  if(c.pulses<1||c.pulses>1e6||c.requiredBits<0) throw new RangeError('pulses must be 1..1000000 and requiredBits nonnegative');
+  if(!Number.isFinite(c.lossDb)||c.lossDb<0||c.lossDb>100) throw new RangeError('lossDb must be in [0,100]');
+  if(!Number.isFinite(c.mu)||c.mu<=0||c.mu>5) throw new RangeError('mu must be in (0,5]');
+  if(!Number.isFinite(c.eps)||c.eps<=0||c.eps>=1) throw new RangeError('eps must be in (0,1)');
+  if(c.attack==='pns'&&c.source!=='wcp') throw new RangeError('PNS requires a weak coherent pulse source');
+  return c;
+}
+function rng(seed,salt) {
+  let state=(seed^salt)>>>0;
+  return ()=>{state=(state+0x6D2B79F5)>>>0;let x=state;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return ((x^(x>>>14))>>>0)/4294967296;};
+}
+function h2(q) {if(q<=0||q>=1)return 0;return -q*Math.log2(q)-(1-q)*Math.log2(1-q);}
+function qberUpper(q,n,eps=1e-6) {
+  if(n<=0||q>=.5)return .5;
+  const target=Math.log(1/eps)/n;
+  let low=q,high=.5;
+  // Invert binary relative entropy in natural units (Chernoff/KL bound).
+  for(let i=0;i<60;i++){const mid=(low+high)/2;const divergence=q===0?-Math.log1p(-mid):q*Math.log(q/mid)+(1-q)*Math.log((1-q)/(1-mid));if(divergence>target)high=mid;else low=mid;}
+  return high;
+}
+function gllpRate(q,delta=1,fec=1.16) {return delta<=0||q/delta>=.5?0:Math.max(0,delta*(1-h2(q/delta))-fec*h2(q));}
+
+function binomialInterval(successes, trials, eps=1e-6) {
+  if(!Number.isSafeInteger(trials)||trials<1||!Number.isSafeInteger(successes)||successes<0||successes>trials||!(eps>0&&eps<1)) throw new RangeError('Invalid confidence interval');
+  const q=successes/trials,budget=Math.log(2/eps)/trials;
+  const kl=p=>(q===0?0:q*Math.log(q/p))+(q===1?0:(1-q)*Math.log((1-q)/(1-p)));
+  let lo=0,hi=q;
+  for(let i=0;i<60;i++){const mid=(lo+hi)/2;if(kl(mid)>budget)lo=mid;else hi=mid;}
+  const lower=q===0?0:lo;lo=q;hi=1;
+  for(let i=0;i<60;i++){const mid=(lo+hi)/2;if(kl(mid)>budget)hi=mid;else lo=mid;}
+  return [lower,q===1?1:hi];
+}
+
+// Source-replacement dual witness for the standard B92 filter (gamma=beta).
+// Each witness is an operator upper bound, so incomplete minimization only
+// reduces yield. IID confidence intervals are NOT a coherent-attack proof.
+function b92PhaseBound({source='ideal',pulses,detected,sifted,errors,sample,eps=1e-6}) {
+  if(source!=='ideal')return {supported:false,phaseUpper:.5,reason:'B92 weak-coherent-source security requires additional tagging/decoy analysis.'};
+  if(!sample||!sifted)return {supported:false,phaseUpper:.5,reason:'Insufficient B92 observations.'};
+  const a=(1-1/Math.sqrt(2))/2,b=1-a,ab=Math.sqrt(a*b);
+  const conclusive=binomialInterval(sifted,pulses,eps/3),loss=binomialInterval(pulses-detected,pulses,eps/3);
+  const qInterval=binomialInterval(errors,sample,eps/3),errorUpper=qInterval[1]*conclusive[1];
+  const eigen=(u,v,z)=>(u+v)/2+Math.hypot((u-v)/2,z);
+  function witness(coefficients) {
+    const [le,lc,ll,la]=coefficients,z=le*ab/2;
+    const identity=Math.max(
+      eigen(-lc*a-le*a/2,-lc*b-la-le*b/2,z),
+      eigen(b-lc*b-le*b/2,a-lc*a-la-le*a/2,z),-ll,-ll-la
+    )+1e-11*(1+coefficients.reduce((sum,x)=>sum+Math.abs(x),0));
+    return {joint:identity+le*errorUpper+lc*conclusive[lc>=0?1:0]+ll*loss[ll>=0?1:0]+la*a,identity};
+  }
+  let best={joint:Infinity};
+  // Bounded deterministic convex coordinate search; no optimum is asserted.
+  for(const initial of [[4,0,1,0],[16,-2,4,-1],[64,-8,16,0]]) {
+    let coefficients=[...initial];
+    for(let round=0;round<16;round++)for(let axis=0;axis<4;axis++) {
+      let lo=axis===0?0:-256,hi=256;
+      for(let step=0;step<38;step++) {
+        const x=lo+(hi-lo)/3,y=hi-(hi-lo)/3;
+        const cx=[...coefficients],cy=[...coefficients];cx[axis]=x;cy[axis]=y;
+        if(witness(cx).joint<witness(cy).joint)hi=y;else lo=x;
+      }
+      const next=[...coefficients];next[axis]=(lo+hi)/2;
+      if(witness(next).joint<witness(coefficients).joint)coefficients=next;
+    }
+    const candidate=witness(coefficients);
+    if(candidate.joint<best.joint)best={...candidate,coefficients};
+  }
+  // Refine coupled coefficients: coordinate search alone can stall on the
+  // nondifferentiable eigenvalue envelope. Every returned point is still a witness.
+  const score=c=>c[0]<0||c.some(x=>!Number.isFinite(x)||Math.abs(x)>1e6)?Infinity:witness(c).joint;
+  let simplex=[best.coefficients,...best.coefficients.map((_,axis)=>best.coefficients.map((x,i)=>x+(i===axis?Math.max(1,Math.abs(x)*.2):0)))];
+  for(let iteration=0;iteration<1000;iteration++) {
+    simplex.sort((x,y)=>score(x)-score(y));
+    const center=simplex[0].map((_,axis)=>simplex.slice(0,4).reduce((sum,c)=>sum+c[axis],0)/4);
+    const point=f=>center.map((x,axis)=>x+f*(center[axis]-simplex[4][axis]));
+    const reflected=point(1),value=score(reflected);
+    if(value<score(simplex[0])){const expanded=point(2);simplex[4]=score(expanded)<value?expanded:reflected;}
+    else if(value<score(simplex[3]))simplex[4]=reflected;
+    else {
+      const contracted=value<score(simplex[4])?point(.5):point(-.5);
+      if(score(contracted)<Math.min(value,score(simplex[4])))simplex[4]=contracted;
+      else simplex=simplex.map((c,i)=>i?c.map((x,axis)=>(x+simplex[0][axis])/2):c);
+    }
+  }
+  simplex.sort((x,y)=>score(x)-score(y));
+  if(score(simplex[0])<best.joint)best={...witness(simplex[0]),coefficients:simplex[0]};
+  if(best.joint < -1e-8)return {supported:false,phaseUpper:.5,reason:'Observed intervals are inconsistent with the assumed B92 qubit model.'};
+  const joint=Math.max(0,best.joint),phaseUpper=conclusive[0]>0?Math.min(.5,joint/conclusive[0]):.5;
+  return {supported:true,phaseUpper,phaseJointUpper:joint,conclusiveInterval:conclusive,lossInterval:loss,errorJointUpper:errorUpper,witness:{coefficients:best.coefficients,identity:best.identity},confidenceFailure:eps,model:'IID single-photon B92 operator witness'};
+}
+
+// Exact binomial upper tail, summed outward from its mode to avoid factorial overflow.
+function detectionProbability(n,p,threshold=0) {
+  if(!Number.isSafeInteger(n)||n<0||!Number.isFinite(p)||p<0||p>1||!Number.isFinite(threshold)||threshold<0||threshold>1) throw new RangeError('Invalid binomial parameters');
+  const k=Math.floor(n*threshold);
+  if(n===0||k>=n||p===0)return 0;if(p===1)return 1;
+  if(k===0)return -Math.expm1(n*Math.log1p(-p));
+  const mode=Math.floor((n+1)*p);
+  if(k>=mode) {
+    const first=k+1,terms=Math.min(first,n-first);
+    let logChoose=0;
+    for(let i=1;i<=terms;i++)logChoose+=Math.log(n-terms+i)-Math.log(i);
+    const logMass=logChoose+first*Math.log(p)+(n-first)*Math.log1p(-p);
+    let relative=1,sum=1;
+    for(let i=first;i<n;i++){relative*=(n-i)/(i+1)*p/(1-p);sum+=relative;if(relative<sum*1e-16)break;}
+    return Math.min(1,Math.exp(logMass)*sum);
+  }
+  let total=1,tail=mode>k?1:0,weight=1;
+  for(let i=mode;i>0;i--){weight*=i/(n-i+1)*(1-p)/p;total+=weight;if(i-1>k)tail+=weight;if(weight<total*1e-16)break;}
+  weight=1;
+  for(let i=mode;i<n;i++){weight*=(n-i)/(i+1)*p/(1-p);total+=weight;if(i+1>k)tail+=weight;if(weight<total*1e-16)break;}
+  return Math.min(1,Math.max(0,tail/total));
+}
+function expectedStats(input={}) {
+  const c=normalize(input),t=10**(-c.lossDb/10),p=c.attack==='ir'?c.interception:0,e=c.noise;
+  const conclusive=c.protocol==='BB84'?.5:.25+p/8+e*(.5-p/4);
+  const qber=c.protocol==='BB84'?e+p/4-e*p/2:(p/8+e/2-e*p/4)/conclusive;
+  const signal=c.source==='ideal'?t*c.efficiency:1-Math.exp(-c.mu*t*c.efficiency);
+  const honestGain=signal+(1-signal)*c.darkCount;
+  // PNS keeps one photon; surviving photons reach Bob over Eve's lossless link.
+  let capacity=0,prob=Math.exp(-c.mu);
+  for(let n=1;n<100;n++){prob*=c.mu/n;if(n>=2)capacity+=prob*(1-(1-c.efficiency)**(n-1));}
+  const forward=c.attack==='pns'?(capacity?Math.min(1,signal/capacity):0):1;
+  const actualSignal=c.attack==='pns'?capacity*forward:signal;
+  const gain=actualSignal+(1-actualSignal)*c.darkCount;
+  const darkShare=gain?(1-actualSignal)*c.darkCount/gain:0;
+  const observedConclusive=(1-darkShare)*conclusive+darkShare*.5;
+  const observedQber=observedConclusive?((1-darkShare)*conclusive*qber+darkShare*.25)/observedConclusive:0;
+  return {qber:observedQber,conclusive:observedConclusive,gain,honestGain,signal,capacity,forward,multiPhotonProbability:1-Math.exp(-c.mu)*(1+c.mu)};
+}
+function compareProtocols(input={}) {
+  const results = ['BB84', 'B92'].map(protocol => simulate({...input, protocol}));
+  const eligible = results.filter(r=>['ACCEPT','ALERT'].includes(r.status)&&r.finalBits>0&&r.finalBits>=r.config.requiredBits&&!r.gainMismatch);
+  eligible.sort((a,b)=>b.finalBits-a.finalBits);
+  const winner=eligible[0],tied=winner&&eligible[1]?.finalBits===winner.finalBits;
+  return {
+    mode: 'comparison', results,
+    recommendation: winner&&!tied?winner.config.protocol:null,
+    reason: tied?'Both protocols meet the modeled target with equal estimated output; no yield winner.' : winner
+      ? `${winner.config.protocol} has the larger eligible estimated key budget (${winner.finalBits} bits). This compares modeled yield, not proof that its key is more secure. Both are instructional estimates; review each bound and its assumptions.`
+      : 'Neither protocol passes the modeled key-budget and channel checks. Increase the signal count, reduce noise/loss, or review source assumptions; no key is recommended.'
+  };
+}
+function interceptionCurve(input={},steps=20) {
+  if(!Number.isInteger(steps)||steps<1||steps>100)throw new RangeError('Curve steps must be 1..100');
+  return ['BB84','B92'].map(protocol=>({protocol,points:Array.from({length:steps+1},(_,i)=>{
+    const fraction=i/steps;
+    return {fraction,qber:expectedStats({...input,protocol,attack:'ir',interception:fraction}).qber};
+  })}));
+}
+function simulate(input={}) {
+  const c=normalize(input),expected=expectedStats(c);
+  const source=rng(c.seed,0x243f6a88),channel=rng(c.seed,0x85a308d3),bob=rng(c.seed,0x13198a2e),eve=rng(c.seed,0x03707344),sampling=rng(c.seed,0xa4093822);
+  const t=10**(-c.lossDb/10),bits=[],trace=[],counts={pulses:c.pulses,emitted:0,vacuum:0,multiPhoton:0,detected:0,sifted:0,sample:0,keyBits:0,errors:0,siftedErrors:0};
+  for(let i=0;i<c.pulses;i++) {
+    let photons=1;
+    if(c.source==='wcp'){photons=-1;let product=1;do{photons++;product*=source();}while(product>Math.exp(-c.mu));}
+    if(photons)counts.emitted++;else counts.vacuum++;
+    if(photons>1)counts.multiPhoton++;
+    const aliceBit=source()<.5?0:1,basisDraw=source(),aliceBasis=c.protocol==='BB84'?(basisDraw<.5?0:1):aliceBit;
+    const signalDraw=channel(),darkDraw=channel(),noiseDraw=channel();
+    const bobBasis=bob()<.5?0:1,bobDraw=bob();
+    const eveForward=eve(),eveIntercept=eve(),eveBasis=eve()<.5?0:1,eveDraw=eve();
+    let stateBasis=aliceBasis,stateBit=c.protocol==='BB84'?aliceBit:0;
+    let signalProbability=1-(1-t*c.efficiency)**photons;
+    if(c.attack==='pns') signalProbability=photons>=2&&eveForward<expected.forward?1-(1-c.efficiency)**(photons-1):0;
+    const signal=signalDraw<signalProbability,dark=darkDraw<c.darkCount;
+    const event=i<32?{pulse:i+1,photons,aliceBit,aliceBasis,bobBasis,bobOutcome:null,bobBit:null,signal,darkOnly:!signal&&dark,detected:signal||dark,conclusive:false,error:false,status:'lost',eveAction:c.attack==='pns'?(photons>=2&&eveForward<expected.forward?'split':'block'):c.attack==='ir'&&eveIntercept<c.interception&&signal?'intercept':'none'}:null;
+    if(event)trace.push(event);
+    if(!signal&&!dark)continue;
+    counts.detected++;
+    if(c.attack==='ir'&&eveIntercept<c.interception){stateBit=eveBasis===stateBasis?stateBit:(eveDraw<.5?0:1);stateBasis=eveBasis;}
+    let measured=signal?(bobBasis===stateBasis?stateBit:(bobDraw<.5?0:1)):(bobDraw<.5?0:1);
+    if(signal&&noiseDraw<c.noise)measured^=1;
+    const conclusive=c.protocol==='BB84'?bobBasis===aliceBasis:measured===1;
+    if(event)Object.assign(event,{bobOutcome:measured,conclusive,status:conclusive?'kept':'discarded'});
+    if(!conclusive)continue;
+    const inferred=c.protocol==='BB84'?measured:1-bobBasis;
+    if(event)Object.assign(event,{bobBit:inferred,error:inferred!==aliceBit,status:inferred!==aliceBit?'error':'kept'});
+    const wrong=Number(inferred!==aliceBit);bits.push(wrong);counts.siftedErrors+=wrong;
+  }
+  counts.sifted=bits.length;counts.sample=Math.floor(bits.length*c.sampleFraction);
+  // Uniform sample without replacement; sampled bits are permanently discarded.
+  for(let i=0;i<counts.sample;i++){const j=i+Math.floor(sampling()*(bits.length-i));[bits[i],bits[j]]=[bits[j],bits[i]];counts.errors+=bits[i];}
+  counts.keyBits=counts.sifted-counts.sample;
+  const qber=counts.sample?counts.errors/counts.sample:0,qUpper=qberUpper(qber,counts.sample,c.eps),gain=counts.detected/c.pulses;
+  const delta=c.source==='wcp'?(gain?Math.max(0,1-expected.multiPhotonProbability/gain):0):1;
+  const gainMismatch=Math.abs(gain-expected.honestGain)>Math.sqrt(Math.log(2/c.eps)/(2*c.pulses));
+  const finitePenalty=2*Math.log2(1/c.eps),verification=34,authentication=64;
+  const privateFraction=delta>0&&qUpper/delta<.5?delta*(1-h2(qUpper/delta)):0;
+  const b92Bound=c.protocol==='B92'?b92PhaseBound({source:c.source,pulses:c.pulses,detected:counts.detected,sifted:counts.sifted,errors:counts.errors,sample:counts.sample,eps:c.eps}):null;
+  const privacy=c.protocol==='B92'?(b92Bound.supported?1-h2(b92Bound.phaseUpper):0):privateFraction;
+  let finalBits=counts.sample?Math.max(0,Math.floor(counts.keyBits*(privacy-1.16*h2(qber))-finitePenalty-verification-authentication)):0;
+  let status='ACCEPT';const warnings=['Educational simulation only; no cryptographic keys or security certification.'];
+  if(c.protocol==='BB84'&&counts.sample&&qber>=.05)status='ALERT';
+  if(!counts.sample||!counts.keyBits||finalBits<c.requiredBits)status='INSUFFICIENT';
+  if(c.protocol==='BB84'&&counts.sample&&qber>.11){status='REJECT';finalBits=0;}
+  if(c.protocol==='B92') {
+    if(!b92Bound.supported){status=counts.sample?'UNSUPPORTED':'INSUFFICIENT';finalBits=0;warnings.push(b92Bound.reason);}
+    if(counts.sample&&qber>.15){status='REJECT';finalBits=0;}
+    warnings.push('B92 uses a single-photon IID phase-error witness with sampling intervals. Its finite-bit budget is instructional, not a composable proof against arbitrary coherent attacks.');
+    warnings.push('B92 detector losses are modeled as erasure; dark-only clicks as random qubit replacement. An illustrative 15% error alarm is additional to the key-budget check.');
+  }
+  if(c.attack==='pns')warnings.push('PNS blocks single photons and forwards multiphoton pulses; channel loss is replaced by a lossless Eve-to-Bob link.');
+  if(gainMismatch)warnings.push('Observed detection gain differs from the honest channel expectation.');
+  if(c.source==='wcp')warnings.push('No decoy states: all multiphoton emissions are conservatively tagged as compromised.');
+  if(c.darkCount)warnings.push('Dark-only detections produce random outcomes; simultaneous signal and dark clicks use the signal outcome.');
+  return {config:c,counts,trace,detected:counts.detected,sifted:counts.sifted,sample:counts.sample,keyBits:counts.keyBits,errors:counts.errors,qber,siftedQber:counts.sifted?counts.siftedErrors/counts.sifted:0,qUpper,b92Bound,expectedQber:expected.qber,expectedConclusive:expected.conclusive,gain,expectedGain:expected.honestGain,attackExpectedGain:expected.gain,gainMismatch,delta,finalBits,status,warnings,finitePenalty,verification,authentication,pipeline:{sent:c.pulses,detected:counts.detected,sifted:counts.sifted,sampled:counts.sample,remaining:counts.keyBits,final:finalBits},detectionProbability:detectionProbability(counts.sample,expected.qber,c.protocol==='BB84'?.11:.15)};
+}
+
+const SCADA_DEFAULTS={duration:60,pulseRate:10000,postProcessingSec:.1,messageRate:10,keyLifetime:10,messagesPerKey:50,keyBits:128,poolCapacity:100,deadlineSec:2,networkDelaySec:.02,attack:'none',attackStart:20,attackEnd:40,interception:1,attackNoise:.25,authenticated:true,recoveryRounds:2,alarmIncrease:.03,alarmProbability:.001};
+const SCADA_TICK=.1;
+function scadaOptions(input) {
+  const c={...SCADA_DEFAULTS,...input};
+  const ranges={duration:[1,600],pulseRate:[100,1e7],postProcessingSec:[0,60],messageRate:[.1,100],keyLifetime:[.1,600],messagesPerKey:[1,100000],poolCapacity:[1,1000],deadlineSec:[.1,60],networkDelaySec:[0,60],attackStart:[0,600],attackEnd:[0,600],interception:[0,1],attackNoise:[0,.5],recoveryRounds:[1,10],alarmIncrease:[0,.5],alarmProbability:[1e-9,.1]};
+  for(const [name,[low,high]] of Object.entries(ranges))if(!Number.isFinite(c[name])||c[name]<low||c[name]>high)throw new RangeError(`${name} must be ${low}..${high}`);
+  for(const name of ['messagesPerKey','poolCapacity','recoveryRounds'])if(!Number.isInteger(c[name]))throw new RangeError(`${name} must be an integer`);
+  if(c.keyBits!==128)throw new RangeError('This SCADA model budgets 128-bit session keys');
+  if(typeof c.authenticated!=='boolean')throw new RangeError('authenticated must be boolean');
+  if(!['none','ir','pns','noise','mitm'].includes(c.attack))throw new RangeError('Unknown SCADA attack');
+  if(c.attack!=='none'&&c.attackEnd<=c.attackStart)throw new RangeError('Attack end must follow its start');
+  return c;
+}
+
+function simulateScada(input={},qkdInput={}) {
+  const o=scadaOptions(input);
+  const config={protocol:'BB84',pulses:10000,noise:.01,seed:42,...qkdInput,attack:'none',requiredBits:128};
+  const baseline=expectedStats(config); // Validates QKD parameters before advancing time.
+  const generationSec=Math.max(SCADA_TICK,Math.ceil((config.pulses/o.pulseRate+o.postProcessingSec)/SCADA_TICK-1e-9)*SCADA_TICK);
+  const roundCount=Math.floor(o.duration/generationSec+1e-9);
+  if(roundCount>600||roundCount*config.pulses>1e7)throw new RangeError('Reduce duration/pulse rate or increase block size: limit 600 QKD rounds and 10 million simulated pulses');
+  if(o.attack==='pns'&&config.source!=='wcp')throw new RangeError('SCADA PNS requires a weak-coherent source in the QKD controls');
+  const snapshots=[],rounds=[],keys=[],messages=[],events=[],pool=[],active={uplink:null,downlink:null},hadActive={uplink:false,downlink:false},pending=[],inFlight=[];
+  const totals={generated:0,delivered:0,dropped:0,pending:0,compromisedDelivered:0,authenticatedDelivered:0,deadlineMisses:0,estimatedBits:0,keysGenerated:0,keysActivated:0,keyExpirations:0,keyRotations:0,alarms:0,authFailures:0,blockedSec:0,expiredPoolKeys:0,overflowKeys:0,revokedKeys:0};
+  let keySequence=0,roundId=0,roundStart=0,nextRound=generationSec,nextArrival=0,blocked=false,cleanRounds=0,lastQber=null,latencyTotal=0,maxLatency=0;
+  const event=(time,type,message,extra={})=>events.push({time,type,message,...extra});
+  event(0,'START',`SCADA starts with no session keys; QKD takes ${generationSec.toFixed(2)} s per block.`);
+  event(0,'QKD_STARTED',`Generating ${config.pulses} pulses plus post-processing; first block completes at ${generationSec.toFixed(2)} s.`);
+  if(!o.authenticated)event(0,'AUTHENTICATION_DISABLED','No authenticated classical channel: low QBER cannot establish endpoint identity.');
+  function drop(message,time,reason) {
+    message.status='DROPPED';message.reason=reason;message.droppedAt=time;totals.dropped++;
+    if(reason==='DEADLINE')totals.deadlineMisses++;
+  }
+  function endKey(key,time,status) {
+    if(!key||!['READY','ACTIVE'].includes(key.status))return;
+    key.status=status;key.endedAt=time;
+    if(status==='EXPIRED')totals.keyExpirations++;
+    if(status==='REVOKED')totals.revokedKeys++;
+    if(key.direction)event(time,`KEY_${status}`,`${key.id} ${status.toLowerCase()} after ${key.uses} messages.`,{keyId:key.id});
+  }
+  function quarantine(time,reason) {
+    totals.alarms++;if(!blocked)event(time,'TRAFFIC_PAUSED',`Traffic paused: ${reason}`);
+    blocked=true;cleanRounds=0;
+    for(const key of pool)endKey(key,time,'REVOKED');pool.length=0;
+    for(const direction of ['uplink','downlink']){endKey(active[direction],time,'REVOKED');active[direction]=null;}
+    for(const message of inFlight)drop(message,time,'SECURITY_QUARANTINE');inFlight.length=0;
+    event(time,'REKEY_REQUIRED','All modeled session keys revoked; fresh clean QKD rounds required.');
+  }
+  function completeRound(time) {
+    const exposedDuration=o.attack==='mitm'?generationSec:config.pulses/o.pulseRate;
+    const overlap=o.attack==='none'?0:Math.max(0,Math.min(roundStart+exposedDuration,o.attackEnd)-Math.max(roundStart,o.attackStart));
+    const exposure=Math.min(1,overlap/exposedDuration),attackConfig={...config,seed:(config.seed+roundId*104729)>>>0};
+    if(o.attack==='ir'&&exposure){attackConfig.attack='ir';attackConfig.interception=o.interception*exposure;}
+    if(o.attack==='noise'&&exposure)attackConfig.noise=config.noise*(1-exposure)+o.attackNoise*exposure;
+    // A partially exposed PNS block is conservatively modeled as fully exposed.
+    if(o.attack==='pns'&&exposure)attackConfig.attack='pns';
+    const r=simulate(attackConfig),authFailed=o.attack==='mitm'&&exposure>0&&o.authenticated;
+    const compromised=o.attack==='mitm'&&exposure>0&&!o.authenticated;
+    const baselineQber=baseline.qber;
+    const pValue=r.sample&&r.errors?detectionProbability(r.sample,baselineQber,(r.errors-1)/r.sample):1;
+    const anomaly=r.sample>0&&r.qber>baselineQber+o.alarmIncrease&&pValue<o.alarmProbability;
+    const alarm=authFailed||anomaly||r.status==='REJECT'||r.gainMismatch;
+    const round={id:++roundId,start:roundStart,end:time,generationSec,attackExposure:exposure,attack:o.attack,qber:r.sample?r.qber:null,baselineQber,sample:r.sample,errors:r.errors,finalBits:r.finalBits,status:r.status,alarm,anomaly,pValue,authFailed,compromised,keysAdded:0};
+    lastQber=round.qber;rounds.push(round);
+    event(time,'QKD_COMPLETE',`Block ${round.id}: ${r.finalBits} estimated bits; ${r.sample?`${(r.qber*100).toFixed(2)}% QBER`:'no disclosed sample'}.`,{roundId:round.id});
+    if(authFailed){totals.authFailures++;event(time,'AUTH_FAILURE','Modeled authentication rejects impersonation despite potentially normal QBER.',{roundId:round.id});}
+    if(anomaly)event(time,'QBER_ANOMALY','QBER rose above the calibrated baseline; disturbance detected, cause not proven.',{roundId:round.id});
+    if(r.gainMismatch)event(time,'GAIN_ANOMALY','Observed gain differs from the honest channel model.',{roundId:round.id});
+    if(alarm)quarantine(time,authFailed?'authentication failed':r.gainMismatch?'gain mismatch':'abnormal QBER / rejected block');
+    const eligible=['ACCEPT','ALERT'].includes(r.status)&&r.finalBits>=128&&!alarm;
+    if(!eligible){if(blocked)cleanRounds=0;if(!alarm)event(time,'NO_KEY_OUTPUT','Block cannot supply a usable modeled 128-bit session key.',{roundId:round.id});}
+    else {
+      if(blocked){cleanRounds++;event(time,'RECOVERY_CHECK',`Clean block ${cleanRounds}/${o.recoveryRounds}.`,{roundId:round.id});if(cleanRounds>=o.recoveryRounds){blocked=false;event(time,'TRAFFIC_RESUMED','Fresh clean blocks passed; key distribution resumes.');}}
+      if(!blocked) {
+        totals.estimatedBits+=r.finalBits;
+        const produced=Math.floor(r.finalBits/o.keyBits),stored=Math.min(produced,o.poolCapacity-pool.length);
+        totals.keysGenerated+=produced;totals.overflowKeys+=produced-stored;round.keysAdded=stored;
+        for(let i=0;i<stored;i++) {
+          const key={id:`${config.protocol}-K${++keySequence}`,roundId:round.id,createdAt:time,expiresAt:time+o.keyLifetime,activatedAt:null,endedAt:null,status:'READY',direction:null,uses:0,compromised};
+          keys.push(key);pool.push(key);
+        }
+        event(time,'KEY_BATCH_READY',`${stored} session keys added (${produced-stored} discarded at pool capacity).`,{roundId:round.id,count:stored});
+      }
+    }
+    roundStart=time;nextRound=time+generationSec;
+    if(time<o.duration)event(time,'QKD_STARTED',`Next QKD block starts; expected completion ${nextRound.toFixed(2)} s.`);
+  }
+  const ticks=Math.ceil(o.duration/SCADA_TICK);
+  for(let tick=0;tick<=ticks;tick++) {
+    const time=Math.min(o.duration,Number((tick*SCADA_TICK).toFixed(8)));
+    for(let i=pool.length-1;i>=0;i--)if(pool[i].expiresAt<=time+1e-8){endKey(pool[i],time,'EXPIRED');pool.splice(i,1);totals.expiredPoolKeys++;}
+    for(const direction of ['uplink','downlink'])if(active[direction]?.expiresAt<=time+1e-8){endKey(active[direction],time,'EXPIRED');active[direction]=null;}
+    // Purge stale pool entries before filling; security checks still precede delivery.
+    if(time+1e-8>=nextRound)completeRound(time);
+    for(let i=inFlight.length-1;i>=0;i--) {
+      const message=inFlight[i];if(message.arrivesAt>time+1e-8)continue;
+      const key=message.key;
+      if(message.arrivesAt>=key.expiresAt-1e-8)drop(message,time,'KEY_EXPIRED_IN_TRANSIT');
+      else if(message.arrivesAt>message.deadlineAt+1e-8)drop(message,time,'DEADLINE');
+      else {
+        message.status='DELIVERED';message.deliveredAt=message.arrivesAt;totals.delivered++;
+        if(message.compromised)totals.compromisedDelivered++;
+        if(o.authenticated&&!message.compromised)totals.authenticatedDelivered++;
+        const latency=message.deliveredAt-message.generatedAt;latencyTotal+=latency;maxLatency=Math.max(maxLatency,latency);
+      }
+      delete message.key;inFlight.splice(i,1);
+    }
+    while(nextArrival<o.duration-1e-8&&nextArrival<=time+1e-8) {
+      const id=++totals.generated,command=id%10===0;
+      const message={id,direction:command?'downlink':'uplink',kind:command?'CONTROL_COMMAND':'TELEMETRY',generatedAt:nextArrival,deadlineAt:nextArrival+o.deadlineSec,sentAt:null,deliveredAt:null,keyId:null,nonceCounter:null,status:'QUEUED',reason:null,compromised:false,payload:command?{breaker:'CLOSED',setpointKw:100+id%20}:{voltageV:Number((230+2*Math.sin(nextArrival)).toFixed(2)),frequencyHz:Number((50+.05*Math.sin(nextArrival/3)).toFixed(3))}};
+      messages.push(message);pending.push(message);nextArrival=totals.generated/o.messageRate;
+    }
+    for(let i=0;i<pending.length;) {
+      const message=pending[i];
+      if(time+o.networkDelaySec>message.deadlineAt+1e-8){drop(message,time,'DEADLINE');pending.splice(i,1);continue;}
+      if(blocked){i++;continue;}
+      let key=active[message.direction];
+      if(key&&(key.uses>=o.messagesPerKey||time+o.networkDelaySec>=key.expiresAt-1e-8)) {
+        endKey(key,time,key.uses>=o.messagesPerKey?'EXHAUSTED':'RETIRED');active[message.direction]=null;key=null;
+      }
+      if(!key&&pool.length) {
+        key=pool.shift();key.status='ACTIVE';key.activatedAt=time;key.direction=message.direction;active[message.direction]=key;totals.keysActivated++;
+        if(hadActive[message.direction])totals.keyRotations++;hadActive[message.direction]=true;
+        event(time,'KEY_ACTIVATED',`${key.id} activated for ${message.direction}; expires at ${key.expiresAt.toFixed(2)} s.`,{keyId:key.id});
+      }
+      if(!key){i++;continue;}
+      // Per-direction key and monotonic counter are metadata, not real AES operations.
+      message.keyId=key.id;message.nonceCounter=key.uses++;message.sentAt=time;message.arrivesAt=time+o.networkDelaySec;message.compromised=key.compromised;message.status='IN_FLIGHT';message.key=key;
+      inFlight.push(message);pending.splice(i,1);
+    }
+    const state=blocked?'QUARANTINED':!o.authenticated?'UNAUTHENTICATED':pending.length?'WAITING_FOR_KEYS':'ACTIVE';
+    const waiting=blocked||pending.length>0||!pool.length&&!Object.values(active).some(key=>key&&key.uses<o.messagesPerKey&&time+o.networkDelaySec<key.expiresAt-1e-8);
+    if(tick<ticks&&waiting)totals.blockedSec+=Math.min(SCADA_TICK,o.duration-time);
+    snapshots.push({time,state,queue:pending.length,poolKeys:pool.length,activeKeys:Object.values(active).filter(Boolean).length,delivered:totals.delivered,generatedBits:totals.estimatedBits,lastQber});
+  }
+  // Export identifiers rather than live key object references.
+  for(const message of messages)delete message.key;
+  totals.pending=messages.filter(m=>m.status==='QUEUED'||m.status==='IN_FLIGHT').length;
+  const meanLatencySec=totals.delivered?latencyTotal/totals.delivered:null;
+  const commandRate=o.messageRate/10,telemetryRate=o.messageRate-commandRate;
+  const demandKeysPerSec=Math.max(1/o.keyLifetime,commandRate/o.messagesPerKey)+Math.max(1/o.keyLifetime,telemetryRate/o.messagesPerKey);
+  return {options:o,qkdConfig:config,resolutionSec:SCADA_TICK,generationSec,summary:{...totals,bitsPerSecond:totals.estimatedBits/o.duration,keysPerSecond:totals.keysGenerated/o.duration,qkdRounds:rounds.length,meanLatencySec,maxLatencySec:totals.delivered?maxLatency:null,availability:Math.max(0,1-totals.blockedSec/o.duration),demandBitsPerSecond:128*demandKeysPerSec,deliveryFraction:totals.generated?totals.delivered/totals.generated:0},snapshots,rounds,keys,messages,events,limitations:[
+    'Discrete 100 ms simulation; pulse rate and post-processing time are configurable assumptions, not hardware benchmarks.',
+    'Session keys are 128-bit budget units with IDs; no secret bytes, AES encryption, real signatures, or live SCADA connections are performed.',
+    'An ideal authentication checker and bootstrap trust are assumed when enabled; authentication-cost bits are already deducted in QKD estimates.',
+    'IR/noise exposure is averaged over the pulse-transmission part of each QKD block; MITM covers the whole exchange. A partially exposed PNS block is modeled conservatively as fully exposed.',
+    'QBER alerts indicate disturbance, not proof of attack. Unauthenticated MITM may retain normal QBER; compromised-message labels use simulator ground truth.',
+    'Nominal demand is a two-direction steady-state estimate; actual rotations, pool expiry, overflow, and attack overhead can require more key material.',
+    'Availability measures time without a key-resource/security stall; delivery fraction and deadline misses separately measure traffic performance.',
+    'MITM compromises newly negotiated keys only; existing uncompromised session keys remain private until rotation. QBER baseline is calibrated from the configured honest-channel model, not inferred from live hardware.',
+    'Security checks precede delivery at each 100 ms tick; an alarm conservatively cancels all in-flight traffic in that tick.'
+  ]};
+}
+
+function compareScada(options={},qkdConfig={}) {
+  const results=['BB84','B92'].map(protocol=>simulateScada(options,{...qkdConfig,protocol}));
+  const ranked=results.filter(r=>r.options.authenticated&&r.summary.authenticatedDelivered>0&&r.summary.compromisedDelivered===0).sort((a,b)=>b.summary.authenticatedDelivered-a.summary.authenticatedDelivered);
+  const tied=ranked.length===2&&ranked[0].summary.authenticatedDelivered===ranked[1].summary.authenticatedDelivered;
+  return {mode:'scada-comparison',results,recommendation:ranked.length&&!tied?ranked[0].qkdConfig.protocol:null,reason:tied?'Both protocols delivered the same number of authenticated modeled messages within deadline. Compare delays, key supply and outage duration.':ranked.length?`${ranked[0].qkdConfig.protocol} delivered more eligible modeled messages within deadline. This ranks this scenario’s availability, not intrinsic key security.`:'Neither run supplies authenticated modeled communication; review key supply, channel conditions and classical-channel authentication.'};
+}
+
+function mountScada({ getQkdConfig, svgNode } = {}) {
+  const root = document.getElementById('scada-lab');
+  if (!root || root.dataset.mounted) return;
+  root.dataset.mounted = 'true';
+  const $ = name => document.getElementById(`scada-${name}`);
+  const form = $('form');
+  const number = (value, digits = 0) => value!=null&&Number.isFinite(Number(value)) ? Number(value).toLocaleString('en-US', { maximumFractionDigits: digits }) : '—';
+  const pct = value => `${number(Number(value) * 100, 2)}%`;
+  const fields = [
+    ['protocol', 'Protocol', 'select', ['compare', 'BB84', 'B92'], 'primary'],
+    ['duration', 'Duration (s)', 'number', [5, 600, 1], 'primary'],
+    ['pulseRate', 'QKD pulses / second', 'number', [100, 1000000, 100], 'primary'],
+    ['messageRate', 'Messages / second', 'number', [0.1, 100, 0.1], 'primary'],
+    ['attack', 'Attack scenario', 'select', ['none', 'ir', 'pns', 'noise', 'mitm'], 'primary'],
+    ['attackStart', 'Attack begins (s)', 'number', [0, 600, 0.1], 'primary'],
+    ['attackEnd', 'Attack ends (s)', 'number', [0, 600, 0.1], 'primary'],
+    ['authenticated', 'Authenticate classical channel', 'checkbox', [], 'primary'],
+    ['postProcessingSec', 'Post-processing / round (s)', 'number', [0, 10, 0.01]],
+    ['keyLifetime', 'Key lifetime (s)', 'number', [0.1, 600, 0.1]],
+    ['messagesPerKey', 'Maximum messages per key', 'number', [1, 10000, 1]],
+    ['poolCapacity', 'Key pool capacity (keys)', 'number', [1, 1000, 1]],
+    ['deadlineSec', 'Message deadline (s)', 'number', [0.1, 60, 0.01]],
+    ['networkDelaySec', 'One-way network delay (s)', 'number', [0, 60, 0.01]],
+    ['interception', 'Intercept-resend fraction (0–1)', 'number', [0, 1, 0.05]],
+    ['attackNoise', 'Noise-burst bit-flip probability', 'number', [0, 0.5, 0.01]],
+    ['recoveryRounds', 'Consecutive clean rounds before recovery', 'number', [1, 10, 1]],
+    ['alarmIncrease', 'QBER alarm increase above baseline', 'number', [0, 0.5, 0.005]],
+    ['alarmProbability', 'Per-round baseline tail probability cutoff', 'number', [0.000000001, 0.1, 'any']]
+  ];
+  const defaults = { protocol: 'compare', duration: 60, pulseRate: 10000, postProcessingSec: .1, messageRate: 10, keyLifetime: 10, messagesPerKey: 50, poolCapacity: 100, deadlineSec: 2, networkDelaySec: .02, attack: 'none', attackStart: 20, attackEnd: 40, interception: 1, attackNoise: .25, authenticated: true, recoveryRounds: 2, alarmIncrease: .03, alarmProbability: .001, ...SCADA_DEFAULTS };
+  defaults.protocol = 'compare';
+  const attackLabels = { none: 'No attack', ir: 'Intercept & resend', pns: 'Photon-number splitting', noise: 'Noise burst', mitm: 'Man in the middle' };
+  for (const [name, labelText, type, bounds, group] of fields) {
+    const wrapper = document.createElement('div');
+    const label = document.createElement('label'); label.htmlFor = `scada-${name}`; label.textContent = labelText;
+    const input = document.createElement(type === 'select' ? 'select' : 'input'); input.id = `scada-${name}`; input.name = name;
+    if (type === 'select') for (const value of bounds) { const option = document.createElement('option'); option.value = value; option.textContent = name === 'attack' ? attackLabels[value] : value === 'compare' ? 'Compare BB84 / B92' : value; input.append(option); }
+    else { input.type = type; if (type === 'number') { [input.min, input.max, input.step] = bounds.map(String); input.required = true; } }
+    if (type === 'checkbox') { input.checked = defaults[name]; wrapper.className = 'scada-check'; wrapper.append(input, label); }
+    else { input.value = defaults[name]; wrapper.append(label, input); }
+    $(group === 'primary' ? 'primary-controls' : 'advanced-controls').append(wrapper);
+  }
+  let output = null, runs = [], selected = 0, snapshotIndex = 0, timer = null;
+  function readOptions() { return Object.fromEntries(fields.map(([name, , type]) => [name, type === 'checkbox' ? $(name).checked : type === 'number' ? Number($(name).value) : $(name).value])); }
+  function pause() { clearInterval(timer); timer = null; root.dataset.playing = 'false'; $('play').textContent = 'Play replay'; }
+  function markStale() { if (output) $('stale').hidden = false; }
+  form.addEventListener('input', markStale);
+  document.getElementById('experiment')?.addEventListener('input', markStale);
+  const presets = {
+    healthy: { attack: 'none' }, ir: { attack: 'ir' }, noise: { attack: 'noise' },
+    authenticatedMITM: { attack: 'mitm', authenticated: true }, unauthMITM: { attack: 'mitm', authenticated: false },
+    supplystarved: { attack: 'none', pulseRate: 1000, messageRate: 50, messagesPerKey: 1, keyLifetime: 1, deadlineSec: .5 }
+  };
+  root.querySelectorAll('[data-scada-preset]').forEach(button => button.addEventListener('click', () => {
+    for (const [name, value] of Object.entries({ ...defaults, ...presets[button.dataset.scadaPreset] })) {
+      if (!$(name)) continue;
+      if (typeof value === 'boolean') $(name).checked = value; else $(name).value = value;
+    }
+    markStale(); $('initial').textContent = `${button.textContent} preset selected. Click Run SCADA experiment.`;
+  }));
+  function paragraph(text) { const p = document.createElement('p'); p.textContent = text; return p; }
+  function metric(label, value, note) { const div = document.createElement('div'); div.className = 'scada-stat'; const span = document.createElement('span'); span.textContent = label; const strong = document.createElement('strong'); strong.textContent = value; const small = document.createElement('small'); small.textContent = note; div.append(span, strong, small); return div; }
+  const ns = 'http://www.w3.org/2000/svg';
+  function svgElement(tag, attrs, text) { const el = document.createElementNS(ns, tag); for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value); if (text !== undefined) el.textContent = text; return el; }
+  function plot(target, title, data, duration, attack, cursor, unit, baseline) {
+    const svg = svgElement('svg', { viewBox: '0 0 440 175', role: 'img', 'aria-label': title });
+    svg.append(svgElement('title', {}, title));
+    const max = Math.max(unit === '%' ? .01 : 1, baseline||0,...data.filter(p => Number.isFinite(p[1])).map(p => p[1]));
+    const upper = unit === '%' ? Math.min(1, max * 1.15) : max * 1.1;
+    const x = value => 46 + Math.max(0, Math.min(duration, value)) / Math.max(duration, .01) * 378;
+    const y = value => 143 - value / upper * 122;
+    if (attack.attack !== 'none') svg.append(svgElement('rect', { x: x(attack.attackStart), y: 15, width: Math.max(0, x(attack.attackEnd) - x(attack.attackStart)), height: 128, fill: '#e9b77f', opacity: '.25' }));
+    for (let i = 0; i <= 2; i++) { const value = upper * i / 2; svg.append(svgElement('line', { x1: 46, x2: 424, y1: y(value), y2: y(value), stroke: '#d8dfd1' }), svgElement('text', { x: 39, y: y(value) + 3, 'text-anchor': 'end', 'font-size': 9, fill: '#667770' }, unit === '%' ? pct(value) : number(value, 1))); }
+    for (let i = 0; i <= 2; i++) svg.append(svgElement('text', { x: x(duration * i / 2), y: 162, 'text-anchor': i === 0 ? 'start' : i === 2 ? 'end' : 'middle', 'font-size': 9, fill: '#667770' }, `${number(duration * i / 2, 1)} s`));
+    const points = data.filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+    if (points.length) svg.append(svgElement('polyline', { points: points.map(([time, value]) => `${x(time)},${y(value)}`).join(' '), fill: 'none', stroke: '#267b65', 'stroke-width': 2 }));
+    if (unit === '%') {
+      if(Number.isFinite(baseline))svg.append(svgElement('line',{x1:46,x2:424,y1:y(baseline),y2:y(baseline),stroke:'#406e9b','stroke-dasharray':'4 4'}));
+      for (const [time, value,alarm] of points) { const circle = svgElement('circle', { cx: x(time), cy: y(value), r: alarm?4:2.5, fill: alarm?'#b6462c':'#267b65' }); circle.append(svgElement('title', {}, `${number(time, 2)} s: ${pct(value)}${alarm?' · alarm':''}`)); svg.append(circle); }
+    }
+    svg.append(svgElement('line', { x1: x(cursor), x2: x(cursor), y1: 15, y2: 143, stroke: '#173743', 'stroke-dasharray': '3 3' }));
+    if (!points.length) svg.append(svgElement('text', { x: 235, y: 80, 'text-anchor': 'middle', 'font-size': 11, fill: '#667770' }, 'No completed data'));
+    $(target).replaceChildren(svg);
+  }
+  function supplyChart(summary) {
+    const svg = svgElement('svg', { viewBox: '0 0 440 175', role: 'img', 'aria-label': 'Average estimated QKD supply and modeled key demand in bits per second' });
+    const max = Math.max(1, summary.bitsPerSecond, summary.demandBitsPerSecond);
+    [['Supply', summary.bitsPerSecond, '#267b65'], ['Demand', summary.demandBitsPerSecond, '#b87742']].forEach(([label, value, color], index) => {
+      const y = 45 + index * 65;
+      svg.append(svgElement('text', { x: 12, y: y - 10, 'font-size': 11, fill: '#173743' }, `${label}: ${number(value, 1)} bits/s`), svgElement('rect', { x: 12, y, width: value / max * 410, height: 20, rx: 3, fill: color }));
+    }); $('supply-chart').replaceChildren(svg);
+  }
+  function renderSnapshot() {
+    const run = runs[selected], snapshots = run.snapshots || [];
+    const s = snapshots[snapshotIndex] || { time: 0, state: 'no snapshots', queue: 0, poolKeys: 0, activeKeys: 0, delivered: 0, generatedBits: 0 };
+    const time = s.time; $('time').value = snapshotIndex; $('clock').textContent = `${number(time, 2)} s`;
+    $('flow-state').textContent = String(s.state).toUpperCase(); $('flow-pool').textContent = `${number(s.poolKeys)} pooled keys · ${number(s.queue)} queued messages`;
+    $('current').textContent = `At ${number(time, 2)} s · state: ${s.state} · delivered: ${number(s.delivered)} · active keys: ${number(s.activeKeys)} · generated key estimate: ${number(s.generatedBits)} bits · latest QBER: ${Number.isFinite(s.lastQber) ? pct(s.lastQber) : 'not measured'}.`;
+    const keys = (run.keys || []).filter(key => key.activatedAt != null && key.activatedAt <= time && (key.endedAt == null || key.endedAt > time) && key.expiresAt > time);
+    $('keys').textContent = `Active simulated key IDs: ${keys.length ? keys.map(key => `${key.id} (${key.direction}, expiry ${number(key.expiresAt, 2)} s${key.compromised ? ', compromised' : ''})`).join(' · ') : 'none'}. IDs represent modeled budgets, not secret key values.`;
+    plot('qber-chart', 'Sample QBER over simulated time', (run.rounds || []).filter(r => r.end <= run.options.duration).map(r => [r.end, r.qber,r.alarm]), run.options.duration, run.options, time, '%',run.rounds[0]?.baselineQber);
+    plot('pool-chart', 'Available key pool over simulated time, in keys', snapshots.map(s => [s.time, s.poolKeys]), run.options.duration, run.options, time, 'keys');
+    plot('queue-chart', 'Waiting messages over simulated time, in messages', snapshots.map(s => [s.time, s.queue]), run.options.duration, run.options, time, 'messages');
+    const events = (run.events || []).filter(event => event.time <= time).slice(-20).reverse();
+    $('events').replaceChildren(...(events.length ? events.map(event => { const li = document.createElement('li'); li.textContent = `${number(event.time, 2)} s · ${event.type} · ${event.message}${event.keyId ? ` · ${event.keyId}` : ''}`; return li; }) : [Object.assign(document.createElement('li'), { textContent: 'No events at this time.' })]));
+    const messages = (run.messages || []).filter(message => message.generatedAt <= time).slice(-10).reverse();
+    $('messages').replaceChildren(...(messages.length ? messages.map(message => {
+      const li = document.createElement('li');
+      const delivered = message.deliveredAt != null && message.deliveredAt <= time, sent = message.sentAt != null && message.sentAt <= time;
+      const dropped=message.droppedAt!=null&&message.droppedAt<=time;
+      const state = dropped?`dropped (${message.reason})`:delivered ? 'delivered' : sent ? 'in flight' : time > message.deadlineAt ? 'deadline passed' : 'queued';
+      li.textContent = `${message.id} · ${message.direction} · ${message.kind} · ${state} · generated ${number(message.generatedAt, 2)} s · deadline ${number(message.deadlineAt, 2)} s${sent ? ` · key ${message.keyId} · nonce ${message.nonceCounter}${message.compromised ? ' · COMPROMISED' : ''}` : ''} · ${typeof message.payload === 'object' ? JSON.stringify(message.payload) : message.payload || 'illustrative payload'}`;
+      return li;
+    }) : [Object.assign(document.createElement('li'), { textContent: 'No messages generated at this time.' })]));
+  }
+  function renderRun() {
+    pause(); const run = runs[selected], s = run.summary;
+    snapshotIndex = Math.max(0, (run.snapshots || []).length - 1); $('time').max = snapshotIndex;
+    $('summary').replaceChildren(
+      metric('Full-run delivery', `${number(s.delivered)} / ${number(s.generated)}`, `${number(s.dropped)} dropped · ${number(s.pending)} pending`),
+      metric('Service availability', pct(s.availability), `${number(s.blockedSec, 2)} s blocked`),
+      metric('Mean / max latency', `${number(s.meanLatencySec, 3)} / ${number(s.maxLatencySec, 3)} s`, `${number(s.deadlineMisses)} deadline misses`),
+      metric('Compromised delivered', number(s.compromisedDelivered), `${number(s.authenticatedDelivered)} authenticated deliveries`),
+      metric('Estimated QKD supply', `${number(s.estimatedBits)} bits`, `${number(s.bitsPerSecond, 1)} bits/s · full-run average`),
+      metric('Key lifecycle', `${number(s.keysGenerated)} generated`, `${number(s.keysPerSecond,2)} keys/s · ${number(s.keyRotations)} rotations · ${number(s.keyExpirations)} expired`),
+      metric('QKD generation interval', `${number(run.generationSec,2)} s`, `${number(run.rounds.length)} completed blocks · ${number(s.overflowKeys)} overflow keys discarded`),
+      metric('Disturbance alarms', number(s.alarms), 'QBER alarms do not establish an attacker'),
+      metric('Authentication failures', number(s.authFailures), 'Ideal checker; pre-shared trust assumed')
+    ); supplyChart(s); renderSnapshot();
+  }
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); if (!form.reportValidity()) return;
+    pause(); $('error').hidden = true;
+    const options = readOptions();
+    if (options.attack !== 'none' && (options.attackEnd <= options.attackStart || options.attackStart >= options.duration || options.attackEnd > options.duration)) { $('error').textContent = 'Attack interval must begin before it ends and remain within the simulation duration.'; $('error').hidden = false; return; }
+    $('run').disabled = true; $('initial').textContent = 'Simulating timed QKD supply, key lifecycle, and SCADA traffic…';
+    await new Promise(resolve => setTimeout(resolve, 20));
+    try {
+      const qkd = structuredClone(getQkdConfig());
+      if(options.attack==='pns')qkd.source='wcp';
+      output = options.protocol === 'compare' ? compareScada(options, qkd) : simulateScada(options, {...qkd,protocol:options.protocol});
+      runs = output.results || [output]; selected = 0;
+      $('view').replaceChildren(...runs.map((run, index) => { const option = document.createElement('option'); option.value = index; option.textContent = run.qkdConfig.protocol; return option; }));
+      $('comparison').replaceChildren(...(runs.length > 1 ? runs.map(run => { const card = document.createElement('article'); card.className = 'scada-compare-card'; const title = document.createElement('h3'); title.textContent = run.qkdConfig.protocol; card.append(title, paragraph(`${number(run.summary.delivered)} delivered / ${number(run.summary.generated)} generated · ${pct(run.summary.availability)} availability`), paragraph(`${number(run.summary.bitsPerSecond, 1)} estimated bits/s · ${number(run.summary.compromisedDelivered)} compromised deliveries · ${number(run.summary.authFailures)} authentication failures`)); return card; }) : []));
+      $('recommendation').textContent = runs.length > 1 ? `${output.recommendation?`Scenario choice: ${output.recommendation}. `:'No single winner. '}${output.reason}` : `${runs[0].qkdConfig.protocol} timed experiment. Interpret the service metrics alongside security alarms and the assumptions below.`;
+      $('results').hidden = false; $('stale').hidden = true; $('initial').textContent = `Experiment complete: ${qkd.pulses.toLocaleString()} pulses/block, ${pct(qkd.noise)} noise, ${qkd.source==='wcp'?'weak-coherent':'single-photon'} source. Metrics summarize the full run; replay controls inspect snapshots.`; $('export').disabled = false;
+      renderRun(); $('announcement').textContent = 'SCADA experiment complete. Comparison, timeline, charts, and event logs updated.';
+    } catch (error) { $('error').textContent = error.message || 'The SCADA experiment could not run.'; $('error').hidden = false; $('initial').textContent = 'Experiment failed. Check the settings and try again.'; }
+    finally { $('run').disabled = false; }
+  });
+  $('view').addEventListener('change', () => { selected = Number($('view').value); renderRun(); });
+  $('time').addEventListener('input', () => { pause(); snapshotIndex = Number($('time').value); renderSnapshot(); });
+  $('play').addEventListener('click', () => {
+    if (timer) { pause(); return; }
+    if (snapshotIndex >= runs[selected].snapshots.length - 1) snapshotIndex = 0;
+    root.dataset.playing = 'true'; $('play').textContent = 'Pause replay'; renderSnapshot();
+    timer = setInterval(() => { if (snapshotIndex >= runs[selected].snapshots.length - 1) { pause(); return; } snapshotIndex=Math.min(runs[selected].snapshots.length-1,snapshotIndex+(Number($('speed').value)||5)); renderSnapshot(); }, 100);
+  });
+  $('export').addEventListener('click', () => {
+    if (!output) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify({ model: 'Local educational QKD / SCADA scheduling model; no actual encryption or network', ...output }, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'qkd-scada-experiment.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+
+const $ = id => document.getElementById(id);
+const form = $('experiment');
+const history = [];
+let result;
+let comparison;
+let traceIndex=0,tracePlaying=false,traceEpoch=0;
+const count = value => Number(value || 0).toLocaleString('en-US');
+const percent = value => Number.isFinite(value) ? `${(value * 100).toFixed(2)}%` : 'No sample';
+const attackNames = { none: 'No attack', ir: 'Intercept & resend', pns: 'Photon splitting' };
+function config() {
+  return Object.fromEntries([...new FormData(form)].map(([key, value]) => [key, ['protocol', 'attack', 'source'].includes(key) ? value : Number(value)]));
+}
+function syncControls() {
+  $('noise-value').value = `${Math.round(Number($('noise').value) * 1000) / 10}%`;
+  $('interception-value').value = `${Math.round(Number($('interception').value) * 100)}%`;
+  $('mu').disabled = $('source').value !== 'wcp';
+  $('interception').disabled = $('attack').value !== 'ir';
+}
+function getConfig() {
+  // Disabled controls retain model defaults in the exported experiment.
+  return { ...config(), mu: Number($('mu').value), interception: Number($('interception').value) };
+}
+function barRow(label, value, max, extra = '') {
+  const row = document.createElement('div');
+  row.className = 'pipeline-row';
+  const text = document.createElement('span'); text.textContent = label;
+  const track = document.createElement('div'); track.className = 'bar-track';
+  const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = `${Math.min(100, Math.max(0, value / Math.max(max, 1) * 100))}%`;
+  track.append(bar);
+  const amount = document.createElement('b'); amount.textContent = count(value) + extra;
+  row.append(text, track, amount);
+  return row;
+}
+function render(r) {
+  resetTrace();
+  const c = r.config;
+  $('run-description').textContent = `RUN ${String(history.length).padStart(2, '0')} / ${c.protocol} / ${count(c.pulses)} pulses / seed ${c.seed}`;
+  $('metric-qber').textContent = r.counts.sample ? percent(r.qber) : 'No sample';
+  $('metric-bound').textContent = percent(r.qUpper);
+  $('metric-bits').textContent = count(r.finalBits);
+  $('metric-target').textContent = `Target: ${count(c.requiredBits)} bits · estimate only`;
+  $('metric-status').textContent = ({ ACCEPT: 'Target reached', ALERT: 'Elevated errors', INSUFFICIENT: 'Insufficient bits', REJECT: 'Rejected', UNSUPPORTED: 'Unsupported source' })[r.status] || r.status;
+  $('metric-status-note').textContent = c.protocol === 'B92' ? 'IID instructional key-length estimate' : r.status === 'ALERT' ? 'At least 5% sampled errors' : r.status === 'REJECT' ? 'Above 11% sampled errors' : 'Not a security certificate';
+  $('protocol-label').textContent = c.protocol;
+  $('gain').textContent = percent(r.gain);
+  $('expected-gain').textContent = `${percent(r.expectedGain)}${r.gainMismatch ? ' · mismatch' : ''}`;
+  $('delta').textContent = c.source === 'wcp' ? percent(r.delta) : '100% · ideal source';
+  $('source-label').textContent = c.source === 'ideal' ? 'Single photon' : `Coherent · μ ${c.mu}`;
+  $('expected-qber').textContent = percent(r.expectedQber);
+  $('eve-bg').setAttribute('fill', c.attack === 'none' ? '#e7ece5' : '#f1ddca');
+  $('eve-title').textContent = c.attack === 'none' ? 'EVE ABSENT' : 'EVE ACTIVE';
+  $('eve-caption').textContent = c.attack === 'none' ? 'unobserved channel' : c.attack === 'ir' ? 'intercept & resend' : 'photon splitting';
+  $('channel-desc').textContent = `${c.protocol}: Alice prepares photons for Bob. ${attackNames[c.attack]}. Detection gain ${percent(r.gain)}.`;
+  const stages = [['Sent', 'sent'], ['Detected', 'detected'], ['Sifted', 'sifted'], ['Disclosed', 'sampled'], ['Remaining', 'remaining'], ['Final estimate', 'final']];
+  $('pipeline').replaceChildren(...stages.map(([label, key]) => barRow(label, r.pipeline[key], c.pulses)));
+  const chart = $('error-chart'); chart.replaceChildren();
+  for (const [label, value] of [['Expected QBER', r.expectedQber], ['Sample QBER', r.counts.sample ? r.qber : null], ['Upper confidence bound', r.qUpper]]) {
+    const row = document.createElement('div'); row.className = 'error-row';
+    const caption = document.createElement('div'); caption.className = 'error-caption';
+    const name = document.createElement('span'); name.textContent = label;
+    const val = document.createElement('strong'); val.textContent = percent(value);
+    caption.append(name, val);
+    const track = document.createElement('div'); track.className = 'bar-track';
+    const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = `${Number.isFinite(value) ? Math.max(0, Math.min(100, value * 100)) : 0}%`;
+    track.append(bar); row.append(caption, track); chart.append(row);
+  }
+  const axis = document.createElement('div'); axis.className = 'error-axis';
+  const zero = document.createElement('span'); zero.textContent = '0%'; const full = document.createElement('span'); full.textContent = '100%'; axis.append(zero, full); chart.append(axis);
+  $('error-explanation').textContent = `${count(r.counts.errors)} errors across ${count(r.counts.sample)} disclosed bits. A small sample widens the confidence bound. The bound uses ε = ${c.eps}; this is only the parameter-estimation failure probability.`;
+  $('thresholds').textContent = c.protocol === 'BB84' ? 'Operational thresholds: warn at ≥5% sampled QBER; reject above 11%. Reaching the bit target is not a security proof.' : 'B92 output uses its own phase-error bound and key-budget check. The additional 15% sampled-error alarm is illustrative, not a security threshold.';
+  $('b92-bound').hidden = c.protocol !== 'B92';
+  if (r.b92Bound) $('b92-bound').textContent = r.b92Bound.supported ? `B92 phase-error upper bound: ${percent(r.b92Bound.phaseUpper)}. Single-photon IID operator witness; conclusive-rate interval ${percent(r.b92Bound.conclusiveInterval[0])}–${percent(r.b92Bound.conclusiveInterval[1])}. Three confidence-interval families share ε = ${c.eps}. The finite-bit deduction is instructional, not a composable security certificate.` : r.b92Bound.reason;
+  $('detection-probability').textContent = `P(sample QBER exceeds operational reject threshold): ${r.detectionProbability > 0 && r.detectionProbability < 0.0001 ? (r.detectionProbability * 100).toExponential(2) + '%' : percent(r.detectionProbability)}. Exact binomial estimate at the model’s expected error rate and this run’s sample size; it does not identify an attacker.`;
+  const reconciliation = Math.ceil(r.counts.keyBits * 1.16 * h2(r.qber));
+  $('leakage').textContent = `Modeled costs: reconciliation ≈ ${count(reconciliation)} bits (1.16 × remaining bits × h₂(sample QBER)); finite-size penalty ${r.finitePenalty.toFixed(1)} bits; verification ${r.verification} bits; authentication ${r.authentication} bits. Privacy reduction uses ${c.protocol === 'B92' ? 'the B92 phase-error witness' : 'the QBER bound and untagged fraction'}.`;
+  $('warnings').replaceChildren(...(r.warnings || []).map(message => { const p = document.createElement('p'); p.textContent = message; return p; }));
+  const maxBits = Math.max(1, ...history.slice(-6).map(item => item.finalBits));
+  $('history').replaceChildren(...[...history].reverse().slice(0, 6).map((item, index) => {
+    const card = document.createElement('article'); card.className = 'history-card';
+    const title = document.createElement('div'); title.className = 'history-title';
+    const protocol = document.createElement('span'); protocol.textContent = `${item.config.protocol} · ${attackNames[item.config.attack]}`;
+    const order = document.createElement('span'); order.textContent = `#${history.length - index}`;
+    title.append(protocol, order);
+    const bits = document.createElement('strong'); bits.textContent = `${count(item.finalBits)} estimated bits`;
+    const track = document.createElement('div'); track.className = 'bar-track'; const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = `${item.finalBits / maxBits * 100}%`; track.append(bar);
+    const detail = document.createElement('p'); detail.textContent = `Sample QBER ${item.counts.sample ? percent(item.qber) : 'unavailable'} · ${count(item.config.pulses)} pulses · noise ${percent(item.config.noise)} · seed ${item.config.seed}`;
+    card.append(title, bits, track, detail); return card;
+  }));
+  $('stale').hidden = true; $('download').disabled = false;
+  $('announcement').textContent = `Experiment complete. ${r.status}. ${count(r.finalBits)} estimated final bits. Sample QBER ${r.counts.sample ? percent(r.qber) : 'unavailable'}.`;
+}
+function renderComparison() {
+  renderGraphs();
+  $('comparison').hidden = !comparison;
+  if (!comparison) return;
+  $('comparison-verdict').textContent = `${comparison.recommendation ? `Modeled choice: ${comparison.recommendation}. ` : 'No yield winner. '}${comparison.reason}`;
+  $('comparison-detail').textContent = `The detailed results below show ${result.config.protocol}. Both runs use identical inputs and seed; shared source and channel random streams support comparison.`;
+  $('comparison-cards').replaceChildren(...comparison.results.map(item => {
+    const card = document.createElement('article'); card.className = 'comparison-card';
+    const title = document.createElement('h3'); title.textContent = item.config.protocol;
+    const stats = document.createElement('dl');
+    const rows = [
+      ['Sifted bits', count(item.sifted)],
+      ['Disclosed sample', count(item.sample)],
+      ['Sample QBER', item.sample ? percent(item.qber) : 'No sample'],
+      ['QBER upper bound', percent(item.qUpper)],
+      ['Detection gain', percent(item.gain)],
+      ['Remaining bits', count(item.keyBits)],
+      ['Estimated final bits', item.status === 'UNSUPPORTED' ? 'Unsupported source model' : count(item.finalBits)],
+      ['Privacy bound', item.config.protocol === 'B92' ? (item.b92Bound.supported ? `Phase error ≤ ${percent(item.b92Bound.phaseUpper)}` : 'Unsupported') : `QBER ≤ ${percent(item.qUpper)}`],
+      ['Outcome', item.status],
+      ['Gain check', item.gainMismatch ? 'Mismatch' : 'Within model tolerance']
+    ];
+    for (const [label, value] of rows) {
+      const term = document.createElement('dt'); term.textContent = label;
+      const definition = document.createElement('dd'); definition.textContent = value;
+      stats.append(term, definition);
+    }
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'inspect-button';
+    button.textContent = `Inspect ${item.config.protocol}`;
+    button.setAttribute('aria-pressed', String(result.config.protocol === item.config.protocol));
+    button.addEventListener('click', () => {
+      const wasStale = !$('stale').hidden;
+      result = item; render(item); renderComparison(); $('stale').hidden = !wasStale;
+    });
+    card.append(title, stats, button); return card;
+  }));
+}
+function svgNode(tag,attributes={},text) {
+  const node=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const [key,value] of Object.entries(attributes))node.setAttribute(key,String(value));
+  if(text!==undefined)node.textContent=text;
+  return node;
+}
+function graphFrame(id,title,maxY,format) {
+  const svg=svgNode('svg',{viewBox:'0 0 380 260',role:'img','aria-label':title,class:'plot'});
+  svg.append(svgNode('title',{},title));
+  const y=value=>210-value/maxY*180;
+  for(let tick=0;tick<=4;tick++) {
+    const value=maxY*tick/4;
+    svg.append(svgNode('line',{x1:58,y1:y(value),x2:360,y2:y(value),stroke:'#dce2d5'}));
+    svg.append(svgNode('text',{x:50,y:y(value)+4,'text-anchor':'end',class:'plot-label'},format(value)));
+  }
+  $(id).replaceChildren(svg);return {svg,y};
+}
+function renderGraphs() {
+  const runs=comparison?comparison.results:[result];
+  const maximum=Math.max(result.config.requiredBits,...runs.map(r=>r.finalBits),1)*1.2;
+  const output=graphFrame('key-graph','Estimated final bits versus target',maximum,v=>Math.round(v).toLocaleString('en-US'));
+  output.svg.append(svgNode('line',{x1:58,x2:360,y1:output.y(result.config.requiredBits),y2:output.y(result.config.requiredBits),stroke:'#5a676d','stroke-dasharray':'5 4'}));
+  for(let i=0;i<runs.length;i++) {
+    const r=runs[i],x=58+(i+.5)*302/runs.length;
+    output.svg.append(svgNode('rect',{x:x-35,y:output.y(r.finalBits),width:70,height:210-output.y(r.finalBits),rx:4,fill:r.config.protocol==='BB84'?'#267b65':'#ba6a32'}));
+    output.svg.append(svgNode('text',{x,y:output.y(r.finalBits)-9,'text-anchor':'middle',class:'plot-value'},count(r.finalBits)));
+    output.svg.append(svgNode('text',{x,y:235,'text-anchor':'middle',class:'plot-label'},r.config.protocol));
+  }
+  $('key-graph-caption').textContent=`Dashed line: ${count(result.config.requiredBits)}-bit target. ${runs.map(r=>`${r.config.protocol}: ${count(r.finalBits)} estimated bits${r.status==='UNSUPPORTED'?' (unsupported source)':''}`).join('; ')}. ${comparison?'Same settings and seed.':'Select Compare BB84 and B92 for paired output.'}`;
+  const curves=interceptionCurve(result.config),maxQ=Math.max(.4,...curves.flatMap(series=>series.points.map(p=>p.qber)))*1.12;
+  const sensitivity=graphFrame('sensitivity-graph','Expected QBER versus fraction of pulses intercepted',maxQ,v=>`${Math.round(v*100)}%`);
+  sensitivity.svg.append(svgNode('text',{x:90,y:17,fill:'#267b65',class:'plot-value'},'BB84'));
+  sensitivity.svg.append(svgNode('text',{x:195,y:17,fill:'#ba6a32',class:'plot-value'},'B92'));
+  for(const series of curves) {
+    const color=series.protocol==='BB84'?'#267b65':'#ba6a32';
+    const points=series.points.map(p=>`${58+p.fraction*302},${sensitivity.y(p.qber)}`).join(' ');
+    sensitivity.svg.append(svgNode('polyline',{points,fill:'none',stroke:color,'stroke-width':3}));
+  }
+  for(const fraction of [0,.25,.5,.75,1])sensitivity.svg.append(svgNode('text',{x:58+fraction*302,y:235,'text-anchor':'middle',class:'plot-label'},`${fraction*100}%`));
+  sensitivity.svg.append(svgNode('text',{x:209,y:255,'text-anchor':'middle',class:'plot-label'},'Fraction intercepted by Eve'));
+  $('sensitivity-caption').textContent=`Analytic intercept-resend reference, not measured sweep data. Uses this run’s noise (${percent(result.config.noise)}), loss, source and detector settings; varies interception from 0 to 100%. Orange: B92; green: BB84. This reference is separate from a selected PNS attack.`;
+}
+function pauseTrace() {
+  tracePlaying=false;traceEpoch++;$('trace-play').textContent=traceIndex>=result?.trace.length?'Replay photons':'Play photons';
+}
+function resetTrace() {
+  pauseTrace();traceIndex=0;$('trace-play').textContent='Play photons';
+  $('trace-status').textContent='Ready: play or step through the first 32 pulses of the displayed run.';
+  for(const id of ['trace-alice','trace-eve','trace-bob','trace-decision'])$(id).textContent='—';
+  $('trace-bits').replaceChildren();$('photon-motion').setAttribute('class','photon-motion');
+}
+function advanceTrace() {
+  const event=result?.trace[traceIndex];if(!event)return false;
+  traceIndex++;
+  const state=result.config.protocol==='B92'?(event.aliceBit?'|+⟩':'|0⟩'):event.aliceBasis?(event.aliceBit?'|−⟩':'|+⟩'):(event.aliceBit?'|1⟩':'|0⟩');
+  $('trace-alice').textContent=`Bit ${event.aliceBit} · ${state} · ${event.photons} photon${event.photons===1?'':'s'}`;
+  $('trace-eve').textContent=event.eveAction==='intercept'?'Eve intercepts and resends':event.eveAction==='split'?'Eve retains a photon':event.eveAction==='block'?'Eve blocks this pulse':event.photons===0?'Vacuum pulse':'No intervention';
+  $('trace-bob').textContent=event.detected?`${event.bobBasis?'X':'Z'} basis · outcome ${event.bobOutcome}${event.darkOnly?' · dark-only click':''}`:'No detection';
+  const decision={lost:'Lost / not detected',discarded:result.config.protocol==='B92'?'Inconclusive · discard':'Basis mismatch · discard',kept:'Sifted · bits agree',error:'Sifted · bit error'}[event.status];
+  $('trace-decision').textContent=decision;
+  $('trace-status').textContent=`${result.config.protocol} · pulse ${traceIndex} of ${result.trace.length}. ${decision}.`;
+  const chip=document.createElement('span');chip.className=`trace-chip trace-${event.status}`;chip.textContent=event.conclusive?String(event.bobBit):'×';chip.setAttribute('title',`Pulse ${event.pulse}: ${decision}`);$('trace-bits').append(chip);
+  const motion=$('photon-motion');motion.style.animationDuration=`${1.7/(Number($('trace-speed').value)||1)}s`;
+  motion.style.setProperty('--travel',event.detected?'540px':'245px');
+  motion.setAttribute('class',`photon-motion motion-${traceIndex%2?'a':'b'} ${event.error?'motion-error':''}`);
+  if(traceIndex===result.trace.length)pauseTrace();return true;
+}
+function playTrace() {
+  if(tracePlaying){pauseTrace();return;}
+  if(traceIndex>=result.trace.length)resetTrace();
+  tracePlaying=true;$('trace-play').textContent='Pause';const epoch=traceEpoch;
+  const tick=()=>{if(!tracePlaying||epoch!==traceEpoch)return;advanceTrace();if(tracePlaying)setTimeout(tick,2000/(Number($('trace-speed').value)||1));};
+  tick();
+}
+$('trace-play').addEventListener('click',playTrace);
+$('trace-step').addEventListener('click',()=>{pauseTrace();advanceTrace();});
+$('trace-reset').addEventListener('click',resetTrace);
+function run() {
+  $('form-error').hidden = true;
+  if (!form.reportValidity()) return;
+  try {
+    const settings = getConfig();
+    const nextComparison = settings.protocol === 'compare' ? compareProtocols(settings) : null;
+    const next = nextComparison ? nextComparison.results[0] : simulate(settings);
+    comparison = nextComparison; result = next;
+    history.push(...(comparison ? comparison.results : [next]));
+    render(next); renderComparison();
+  } catch (error) {
+    $('form-error').textContent = error.message || 'The experiment could not run. Check the settings.';
+    $('form-error').hidden = false;
+  }
+}
+form.addEventListener('submit', event => { event.preventDefault(); run(); });
+form.addEventListener('input', event => {
+  if (event.target.id === 'attack' && $('attack').value === 'pns') $('source').value = 'wcp';
+  syncControls(); $('stale').hidden = !result;
+});
+const presets = {
+  baseline: { protocol: 'BB84', attack: 'none', noise: 0.05, source: 'ideal' },
+  ir: { protocol: 'BB84', attack: 'ir', noise: 0, source: 'ideal' },
+  pns: { protocol: 'BB84', attack: 'pns', noise: 0, source: 'wcp', lossDb: 10 },
+  b92: { protocol: 'B92', pulses:100000, attack: 'none', noise: 0.005, source: 'ideal' }
+};
+document.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => {
+  const settings = { pulses: 10000, interception: 1, lossDb: 0, efficiency: 1, darkCount: 0, mu: 0.5, sampleFraction: 0.25, eps: 0.000001, requiredBits: 128, seed: 42, ...presets[button.dataset.preset] };
+  for (const [key, value] of Object.entries(settings)) $(key).value = value;
+  syncControls(); run();
+}));
+$('download').addEventListener('click', () => {
+  if (!result) return;
+  const blob = new Blob([JSON.stringify({ model: 'QKD Lab educational simulation', limitation: 'Not a security certificate. Estimated bits only; no usable secret key.', ...result, ...(comparison ? {comparison} : {}) }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `qkd-${comparison ? 'comparison' : result.config.protocol.toLowerCase()}-seed-${result.config.seed}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+syncControls(); run();
+mountScada({getQkdConfig:getConfig,svgNode});
+</script>
+</body></html>
+
