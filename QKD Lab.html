@@ -21,10 +21,10 @@
 <label for="protocol">Protocol</label><select id="protocol" name="protocol"><option>BB84</option><option>B92</option><option value="compare">Compare BB84 and B92</option></select>
 <label for="pulses">Transmitted pulses</label><input id="pulses" name="pulses" type="number" min="100" max="1000000" step="1" value="10000" required>
 <label for="attack">Eavesdropping scenario</label><select id="attack" name="attack"><option value="none">No eavesdropper</option><option value="ir">Intercept &amp; resend</option><option value="pns">Photon-number splitting (PNS)</option></select>
-<label for="noise">Channel bit-flip probability <output id="noise-value" for="noise">5%</output></label><input id="noise" name="noise" type="range" min="0" max="0.5" step="0.005" value="0.05">
-<label for="interception">Intercept-resend fraction <output id="interception-value" for="interception">100%</output></label><input id="interception" name="interception" type="range" min="0" max="1" step="0.05" value="1">
-<details class="advanced"><summary>Channel &amp; source settings</summary><label for="lossDb">Channel loss (dB)</label><input id="lossDb" name="lossDb" type="number" min="0" max="60" step="0.1" value="0" required><label for="efficiency">Detector efficiency (0–1)</label><input id="efficiency" name="efficiency" type="number" min="0" max="1" step="0.01" value="1" required><label for="darkCount">Dark-count probability (0–1)</label><input id="darkCount" name="darkCount" type="number" min="0" max="1" step="0.0001" value="0" required><label for="source">Photon source</label><select id="source" name="source"><option value="ideal">Ideal single photon</option><option value="wcp">Weak coherent pulses</option></select><label for="mu">Mean photons per pulse (μ)</label><input id="mu" name="mu" type="number" min="0.01" max="5" step="0.01" value="0.5" required></details>
-<details class="advanced"><summary>Estimation &amp; reproducibility</summary><label for="sampleFraction">Disclosed sample fraction (0–1)</label><input id="sampleFraction" name="sampleFraction" type="number" min="0.01" max="0.9" step="0.01" value="0.25" required><label for="eps">Parameter-estimation failure probability</label><input id="eps" name="eps" type="number" min="0.000000000001" max="0.1" step="any" value="0.000001" required><label for="requiredBits">Target estimated bits</label><input id="requiredBits" name="requiredBits" type="number" min="1" max="1000000" step="1" value="128" required><label for="seed">Random seed</label><input id="seed" name="seed" type="number" min="0" max="4294967295" step="1" value="42" required><p class="small muted">The same settings and seed reproduce the same experiment.</p></details>
+<label for="noise">Channel bit-flip probability <output id="noise-value" for="noise">5%</output></label><input id="noise" name="noise" type="range" min="0" max="0.5" step="any" value="0.05">
+<label for="interception">Intercept-resend fraction <output id="interception-value" for="interception">100%</output></label><input id="interception" name="interception" type="range" min="0" max="1" step="any" value="1">
+<details class="advanced"><summary>Channel &amp; source settings</summary><label for="lossDb">Channel loss (dB)</label><input id="lossDb" name="lossDb" type="number" min="0" max="60" step="any" value="0" required><label for="efficiency">Detector efficiency (0–1)</label><input id="efficiency" name="efficiency" type="number" min="0" max="1" step="any" value="1" required><label for="darkCount">Dark-count probability (0–1)</label><input id="darkCount" name="darkCount" type="number" min="0" max="1" step="any" value="0" required><label for="source">Photon source</label><select id="source" name="source"><option value="ideal">Ideal single photon</option><option value="wcp">Weak coherent pulses</option></select><label for="mu">Mean photons per pulse (μ)</label><input id="mu" name="mu" type="number" min="0.01" max="5" step="any" value="0.5" required></details>
+<details class="advanced"><summary>Estimation &amp; reproducibility</summary><label for="sampleFraction">Disclosed sample fraction (0–1)</label><input id="sampleFraction" name="sampleFraction" type="number" min="0.01" max="0.9" step="any" value="0.25" required><label for="eps">Parameter-estimation failure probability</label><input id="eps" name="eps" type="number" min="0.000000000001" max="0.1" step="any" value="0.000001" required><label for="requiredBits">Target estimated bits</label><input id="requiredBits" name="requiredBits" type="number" min="1" max="1000000" step="1" value="128" required><label for="seed">Random seed</label><input id="seed" name="seed" type="number" min="0" max="4294967295" step="1" value="42" required><p class="small muted">The same settings and seed reproduce the same experiment.</p></details>
 <p id="form-error" class="form-error" role="alert" hidden></p><button class="run-button" type="submit"><span>Run experiment</span><span aria-hidden="true">↗</span></button><p class="small muted control-foot">Simulation only. No real quantum hardware or usable secret keys.</p>
 </form></aside>
 <main id="results" tabindex="-1">
@@ -36,6 +36,7 @@
 <section id="monte-carlo-evidence" class="panel evidence-panel" aria-labelledby="evidence-title">
 <div class="section-label">MONTE CARLO EVIDENCE / ACTUAL RUN</div>
 <h2 id="evidence-title">Where did these key bits come from?</h2>
+<p><a id="open-simulation" href="./simulation.html" target="_blank" rel="noopener">Open simulation in a separate tab →</a></p>
 <p class="muted small">Follow the actual random trials used by the displayed result. These records come from the same simulation loop that counts detections, retained bits and errors.</p>
 <p id="evidence-run" class="evidence-run"></p>
 <div class="evidence-actions"><button id="evidence-repeat" class="inspect-button" type="button">Repeat same seed</button><button id="evidence-next" class="inspect-button" type="button">Next seed and rerun</button></div>
@@ -304,6 +305,19 @@ function simulate(input={}) {
   if(c.source==='wcp')warnings.push('No decoy states: all multiphoton emissions are conservatively tagged as compromised.');
   if(c.darkCount)warnings.push('Dark-only detections produce random outcomes; simultaneous signal and dark clicks use the signal outcome.');
   return {config:c,counts,trace,audit,budget,detected:counts.detected,sifted:counts.sifted,sample:counts.sample,keyBits:counts.keyBits,errors:counts.errors,qber,siftedQber:counts.sifted?counts.siftedErrors/counts.sifted:0,qUpper,b92Bound,expectedQber:expected.qber,expectedConclusive:expected.conclusive,gain,expectedGain:expected.honestGain,attackExpectedGain:expected.gain,gainMismatch,delta,finalBits,status,warnings,finitePenalty,verification,authentication,pipeline:{sent:c.pulses,detected:counts.detected,sifted:counts.sifted,sampled:counts.sample,remaining:counts.keyBits,final:finalBits},detectionProbability:detectionProbability(counts.sample,expected.qber,c.protocol==='BB84'?.11:.15)};
+}
+
+// Share configuration only. Each page runs the engine itself; no result is supplied in the link.
+function runFragment(settings) {
+  return '#qkd='+encodeURIComponent(JSON.stringify(normalize(settings)));
+}
+function readRunFragment(hash) {
+  if(!hash.startsWith('#qkd='))return null;
+  const input=JSON.parse(decodeURIComponent(hash.slice(5)));
+  if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Invalid shared settings');
+  const settings={};
+  for(const key of Object.keys(normalize()))if(Object.hasOwn(input,key))settings[key]=input[key];
+  return normalize(settings);
 }
 
 const SCADA_DEFAULTS={duration:60,pulseRate:10000,postProcessingSec:.1,messageRate:10,keyLifetime:10,messagesPerKey:50,keyBits:128,poolCapacity:100,deadlineSec:2,networkDelaySec:.02,attack:'none',attackStart:20,attackEnd:40,interception:1,attackNoise:.25,authenticated:true,recoveryRounds:2,alarmIncrease:.03,alarmProbability:.001};
@@ -725,6 +739,7 @@ function render(r) {
   $('announcement').textContent = `Experiment complete. ${r.status}. ${count(r.finalBits)} estimated final bits. Sample QBER ${r.counts.sample ? percent(r.qber) : 'unavailable'}.`;
 }
 function renderEvidence(r) {
+  $('open-simulation').href='./simulation.html'+runFragment(r.config);
   const records=r.audit,kept=records.filter(e=>e.conclusive),disclosed=kept.filter(e=>e.sampled),remaining=kept.filter(e=>!e.sampled);
   const bits=(events,key)=>events.length?events.map(e=>e[key]).join(''):'No bits in this preview';
   $('evidence-run').textContent=`${r.config.protocol} · seed ${r.config.seed} · ${count(r.config.pulses)} Monte Carlo trials · ${count(r.finalBits)} estimated final bits`;
@@ -916,7 +931,13 @@ $('download').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify({ model: 'QKD Lab educational simulation', limitation: 'Not a security certificate. Estimated bits only; no usable secret key.', ...result, ...(comparison ? {comparison} : {}) }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `qkd-${comparison ? 'comparison' : result.config.protocol.toLowerCase()}-seed-${result.config.seed}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+let sharedSettingsError='';
+try {
+  const shared=typeof location==='undefined'?null:readRunFragment(location.hash);
+  if(shared)for(const [key,value] of Object.entries(shared))$(key).value=value;
+}catch(error){sharedSettingsError='Shared settings could not be loaded: '+error.message;}
 syncControls(); run();
+if(sharedSettingsError){$('form-error').hidden=false;$('form-error').textContent=sharedSettingsError;}
 mountScada({getQkdConfig:getConfig,svgNode});
 </script>
 </body></html>

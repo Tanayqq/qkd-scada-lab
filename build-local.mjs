@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const read = name => readFileSync(new URL(name, import.meta.url), 'utf8');
-const script = ['dist/engine.mjs','dist/scada.mjs','dist/scada-ui.mjs','dist/app.mjs']
+const script = ['dist/engine.mjs','dist/run-link.mjs','dist/scada.mjs','dist/scada-ui.mjs','dist/app.mjs']
   .map(name=>read(name).replace(/^import .*from '\.\/[^']+';\s*/gm,'').replace(/^export /gm,''))
   .join('\n');
 const check = spawnSync(process.execPath, ['--check', '--input-type=module'], { input: script, encoding: 'utf8' });
@@ -18,3 +18,8 @@ if (/<(?:script|link)\b[^>]*(?:src|href)="\.\//i.test(html)) throw new Error('Ex
 const output = new URL('QKD Lab.html', import.meta.url);
 writeFileSync(output, html);
 console.log(`Offline dashboard ready: ${fileURLToPath(output)}`);
+const runner=read('dist/simulation.mjs').replace(/^import .*from '\.\/[^']+';\s*/gm,'');
+const runnerScript=['dist/engine.mjs','dist/run-link.mjs'].map(name=>read(name).replace(/^import .*from '\.\/[^']+';\s*/gm,'').replace(/^export /gm,'')).join('\n')+'\n'+runner;
+const runnerCheck=spawnSync(process.execPath,['--check','--input-type=module'],{input:runnerScript,encoding:'utf8'});
+if(runnerCheck.status!==0||/<\/script/i.test(runnerScript))throw new Error(runnerCheck.stderr||'Invalid simulation script');
+writeFileSync(new URL('simulation.html',import.meta.url),read('dist/simulation.html').replace('<script type="module" src="./simulation.mjs"></script>',()=>`<script type="module">${runnerScript}</script>`));

@@ -1,6 +1,6 @@
 // Educational prepare-and-measure model; no generated bits are cryptographic keys.
 const DEFAULTS = {protocol:'BB84',pulses:10000,noise:.05,attack:'none',interception:1,lossDb:0,efficiency:1,darkCount:0,source:'ideal',mu:.5,sampleFraction:.25,seed:42,eps:1e-6,requiredBits:128};
-function normalize(input={}) {
+export function normalize(input={}) {
   const c={...DEFAULTS,...input};
   for (const [key,values] of Object.entries({protocol:['BB84','B92'],attack:['none','ir','pns'],source:['ideal','wcp']}))
     if(!values.includes(c[key])) throw new RangeError(`Invalid ${key}`);

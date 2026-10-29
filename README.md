@@ -20,7 +20,7 @@ The **Where did these key bits come from?** panel records the first 128 actual p
 
 Click **Repeat same seed** to recompute the displayed configuration and compare the complete result, including the trial audit and budget, for exact equality. **Next seed and rerun** retains that configuration, increments its seed and runs a new experiment, including both protocols when comparing. The bit strings are raw simulated observations before implemented reconciliation or privacy amplification; the final-key figure remains an instructional length estimate. The sensitivity curve is separately labeled as an analytic reference.
 
-Evidence checks reconstruct every count from full small-run audits under both protocols, source/detector conditions and disclosure fractions. The automated suite now contains 71 tests.
+Evidence checks reconstruct every count from full small-run audits under both protocols, source/detector conditions and disclosure fractions. The automated suite now contains 73 tests.
 
 ## SCADA lifecycle and intrusion monitoring
 
@@ -92,7 +92,7 @@ Only the receiver projection includes the released file prefix. Once complete, t
 
 The final graphs show cumulative delivery percentage, bytes released per round, and estimated key bits per round (including rejected budgets, colored by disposition). The existing QBER graph remains visible. File-transfer outcomes are distinct from the original timed-SCADA scheduler, which models message deadlines and key pools; this live extension represents a control-center-to-substation telemetry-file experiment rather than physical grid control.
 
-Validation: `node --test tests.mjs scada.test.mjs offline.test.mjs live.test.mjs` (71 tests). `live-browser.test.mjs` tests actual upload, blocked chunks, recovery, byte-identical receiver download and final graphs through three isolated browser contexts. Its default transport uses a controllable in-memory session clock to cover all 30 rounds; with `LIVE_URL` it tests the deployed service in real time. `PLAYWRIGHT_PATH` may point to an existing Playwright installation. No uploaded file is sent to the attacker role. Dormant private room records require administrator cleanup as described below.
+Validation: `node --test tests.mjs scada.test.mjs offline.test.mjs live.test.mjs run-link.test.mjs` (73 tests). `live-browser.test.mjs` tests actual upload, blocked chunks, recovery, byte-identical receiver download and final graphs through three isolated browser contexts. Its default transport uses a controllable in-memory session clock to cover all 30 rounds; with `LIVE_URL` it tests the deployed service in real time. `PLAYWRIGHT_PATH` may point to an existing Playwright installation. No uploaded file is sent to the attacker role. Dormant private room records require administrator cleanup as described below.
 
 Open `/live.html` on the Vercel deployment and create a room. Share its separate Sender, Receiver, and Attacker invitation links with three devices. The receiver clicks Join; the sender clicks Start. Healthy rounds produce matching **illustrative markers**, not usable QKD keys. Eve can apply intercept-resend, noise, or MITM during the exchange. Endpoints learn about disturbance only when the round is measured and checked. Stop an attack and allow two clean accepted rounds for recovery. Stop on the sender page clears the current marker.
 
@@ -102,4 +102,8 @@ Shared state lives in private Vercel Blob storage, read without CDN caching. Con
 
 `live/` contains the UI, session model, and API. Run `node --test live.test.mjs` for lifecycle and role tests. Install its pinned dependency with `npm ci --prefix live`; then `node prepare-vercel.mjs` builds a `public/` output folder plus the `/api/room` Vercel Function. Keep `BLOB_READ_WRITE_TOKEN` in the Vercel production environment only. `.env*`, dependencies, and the old static index are excluded from upload. The original offline artifact still runs its local channel and SCADA experiments; the new shared room requires internet.
 
+
+# Separate simulation walkthrough
+
+Open `simulation.html` (or `/simulation.html` on the hosted demo). Run an experiment, inspect the actual pulse records and arithmetic, then click **Open matching dashboard**. The link carries only settings and the seed; the dashboard runs the same engine again. From the dashboard evidence panel, **Open simulation in a separate tab** carries the displayed protocol's settings in the reverse direction. This demonstrates the calculation path and reproducibility, not independent verification by another implementation. The raw bit preview covers at most 128 pulses; full-run counters cover every pulse. Final output is an estimated length, not an extracted secret key.
 

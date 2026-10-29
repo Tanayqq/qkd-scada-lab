@@ -6,6 +6,7 @@ const directory=new URL('vercel-demo/',import.meta.url);
 mkdirSync(directory,{recursive:true});
 for(const folder of ['public','api','live','dist'])mkdirSync(new URL(folder+'/',directory),{recursive:true});
 copyFileSync(new URL('QKD Lab.html',import.meta.url),new URL('public/index.html',directory));
+copyFileSync(new URL('simulation.html',import.meta.url),new URL('public/simulation.html',directory));
 for(const file of ['live.html','live.css','live.js'])copyFileSync(new URL('live/'+file,import.meta.url),new URL('public/'+file,directory));
 for(const file of ['package.json','package-lock.json'])copyFileSync(new URL('live/'+file,import.meta.url),new URL(file,directory));
 copyFileSync(new URL('live/session.mjs',import.meta.url),new URL('live/session.mjs',directory));

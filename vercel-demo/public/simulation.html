@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>QKD Lab · Simulation walkthrough</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#173743;background:#f4f5ed}*{box-sizing:border-box}body{margin:0}main{max-width:1080px;margin:auto;padding:28px 20px}h1{font-size:30px;margin:8px 0}h2{font-size:22px}h3{font-size:16px}p{line-height:1.6}.eyebrow{font-size:12px;letter-spacing:2px}section,header{background:#fffefa;border:1px solid #d9dfd2;border-radius:12px;padding:24px;margin-bottom:18px}a{color:#1f795f}form .fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}label{display:grid;gap:6px;font-size:14px;font-weight:600}input,select,button,.button{font:inherit;border:1px solid #bacabb;border-radius:6px;padding:10px;background:#fff;color:#173743;min-width:0}button,.button{cursor:pointer;display:inline-block;text-decoration:none}button[type=submit],.button{background:#173743;color:white}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}details{margin-top:18px}summary{cursor:pointer;padding:8px 0;font-weight:600}details .fields{margin-top:12px}.small{font-size:13px;color:#526966}#error{color:#963217}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metrics div{background:#eef2e7;padding:14px;border-radius:8px}.metrics strong{display:block;font-size:23px;margin-top:8px}code{font-size:14px;word-break:break-all;white-space:normal}.bits{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px}dt{font-size:13px}dd{margin:0}ol{padding-left:22px}li{padding:6px 0;line-height:1.55}.table-wrap{overflow:auto;max-height:460px}table{border-collapse:collapse;min-width:880px;width:100%;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid #dde3d8}th{position:sticky;top:0;background:#e8eee2}tr.error{background:#fff0e5}tr.disclosed{background:#edf4fc}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #ab671c;outline-offset:3px}[hidden]{display:none!important}@media(max-width:650px){form .fields,.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.bits{grid-template-columns:1fr}section,header{padding:16px}main{padding:16px 10px}}
+</style></head><body><main>
+<header><div class="eyebrow">QKD LAB / SHOW THE SIMULATION</div><h1>From random pulses to a key estimate.</h1><p>Run the simulation here, then open the dashboard with the same settings and seed. Both pages calculate their own results using the <strong>same QKD engine</strong>. This shows the calculation path; it is not an independent implementation.</p></header>
+<section aria-labelledby="settings-title"><h2 id="settings-title">1. Choose the experiment</h2><form id="simulation-form"><div class="fields">
+<label>Protocol<select name="protocol"><option>BB84</option><option>B92</option></select></label>
+<label>Transmitted pulses<input name="pulses" type="number" min="100" max="1000000" step="1" required value="10000"></label>
+<label>Random seed<input name="seed" type="number" min="0" max="4294967295" step="1" required value="42"></label>
+<label>Attack<select name="attack"><option value="none">No attack</option><option value="ir">Intercept &amp; resend</option><option value="pns">Photon-number splitting</option></select></label>
+<label>Channel noise (0–1)<input name="noise" type="number" min="0" max="0.5" step="any" required value="0.05"></label>
+<label>Intercept fraction (0–1)<input name="interception" type="number" min="0" max="1" step="any" required value="1"></label></div>
+<p class="small">0.01 means 1% noise; 0.05 means 5%. Intercept fraction applies only to intercept-resend. A pulse is one randomized Monte Carlo trial; this page runs one complete QKD experiment.</p>
+<details><summary>Other channel and estimation settings</summary><div class="fields">
+<label>Source<select name="source"><option value="ideal">Ideal single photon</option><option value="wcp">Weak coherent pulses</option></select></label>
+<label>Channel loss (dB)<input name="lossDb" type="number" min="0" max="60" step="any" required value="0"></label>
+<label>Detector efficiency (0–1)<input name="efficiency" type="number" min="0" max="1" step="any" required value="1"></label>
+<label>Dark-count probability<input name="darkCount" type="number" min="0" max="1" step="any" required value="0"></label>
+<label>Mean photons (μ)<input name="mu" type="number" min="0.01" max="5" step="any" required value="0.5"></label>
+<label>Disclosed sample fraction<input name="sampleFraction" type="number" min="0.01" max="0.9" step="any" required value="0.25"></label>
+<label>Estimation failure probability<input name="eps" type="number" min="0.000000000001" max="0.1" step="any" required value="0.000001"></label>
+<label>Target bits<input name="requiredBits" type="number" min="1" max="1000000" step="1" required value="128"></label></div></details>
+<div class="actions"><button type="submit">Run simulation</button><button type="button" id="fresh-seed">New random seed and run</button><button type="button" id="repeat">Repeat displayed run</button></div><p id="error" role="alert" hidden></p><p id="check" role="status" aria-live="polite"></p></form></section>
+<section id="output" aria-labelledby="result-title"><h2 id="result-title">2. Read the calculated result</h2><p id="run-label"></p><div class="metrics"><div>Retained / sifted bits<strong id="sifted"></strong></div><div>Observed QBER<strong id="qber"></strong></div><div>Estimated final bits<strong id="final"></strong></div><div>Model outcome<strong id="outcome"></strong></div></div><ol id="calculation"></ol><p id="warnings" class="small"></p>
+<div class="actions"><a class="button" id="dashboard" href="./" target="_blank" rel="noopener">3. Open matching dashboard →</a><button id="export" type="button">Download this run (JSON)</button></div><p class="small">The link sends settings and seed only. The dashboard reruns the simulation; no calculated result is passed to it. After editing settings, click Run simulation before comparing.</p></section>
+<section aria-labelledby="trace-title"><h2 id="trace-title">Inspect the actual key-generation steps</h2><p id="trace-rule"></p><p id="preview-scope" class="small"></p><dl class="bits" id="bits"></dl><p class="small">The preview stays in pulse order. Disclosed test bits are removed. Raw bits can still disagree: error correction and privacy amplification are modeled deductions, not executed key-extraction protocols.</p><div class="table-wrap" role="region" aria-label="Actual pulse outcomes" tabindex="0"><table><caption id="trial-caption"></caption><thead><tr><th>Pulse</th><th>Alice bit</th><th>Alice basis / state</th><th>Bob basis</th><th>Bob measurement</th><th>Inferred bit</th><th>Decision</th><th>Random draw: Alice bit</th><th>Random draw: noise</th></tr></thead><tbody id="trials"></tbody></table></div></section>
+<p class="small">Educational simulation. Seeded pseudorandom outcomes, not physical quantum hardware or cryptographically secure random keys. Final bits are an instructional length estimate. QBER disturbance alone cannot identify an attacker.</p>
+</main><script type="module">// Educational prepare-and-measure model; no generated bits are cryptographic keys.
+const DEFAULTS = {protocol:'BB84',pulses:10000,noise:.05,attack:'none',interception:1,lossDb:0,efficiency:1,darkCount:0,source:'ideal',mu:.5,sampleFraction:.25,seed:42,eps:1e-6,requiredBits:128};
+function normalize(input={}) {
+  const c={...DEFAULTS,...input};
+  for (const [key,values] of Object.entries({protocol:['BB84','B92'],attack:['none','ir','pns'],source:['ideal','wcp']}))
+    if(!values.includes(c[key])) throw new RangeError(`Invalid ${key}`);
+  for(const key of ['noise','interception','efficiency','darkCount','sampleFraction'])
+    if(!Number.isFinite(c[key])||c[key]<0||c[key]>1) throw new RangeError(`${key} must be in [0,1]`);
+  for(const key of ['pulses','seed','requiredBits']) if(!Number.isSafeInteger(c[key])) throw new RangeError(`${key} must be an integer`);
+  if(c.pulses<1||c.pulses>1e6||c.requiredBits<0) throw new RangeError('pulses must be 1..1000000 and requiredBits nonnegative');
+  if(!Number.isFinite(c.lossDb)||c.lossDb<0||c.lossDb>100) throw new RangeError('lossDb must be in [0,100]');
+  if(!Number.isFinite(c.mu)||c.mu<=0||c.mu>5) throw new RangeError('mu must be in (0,5]');
+  if(!Number.isFinite(c.eps)||c.eps<=0||c.eps>=1) throw new RangeError('eps must be in (0,1)');
+  if(c.attack==='pns'&&c.source!=='wcp') throw new RangeError('PNS requires a weak coherent pulse source');
+  return c;
+}
+function rng(seed,salt) {
+  let state=(seed^salt)>>>0;
+  return ()=>{state=(state+0x6D2B79F5)>>>0;let x=state;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return ((x^(x>>>14))>>>0)/4294967296;};
+}
+function h2(q) {if(q<=0||q>=1)return 0;return -q*Math.log2(q)-(1-q)*Math.log2(1-q);}
+function qberUpper(q,n,eps=1e-6) {
+  if(n<=0||q>=.5)return .5;
+  const target=Math.log(1/eps)/n;
+  let low=q,high=.5;
+  // Invert binary relative entropy in natural units (Chernoff/KL bound).
+  for(let i=0;i<60;i++){const mid=(low+high)/2;const divergence=q===0?-Math.log1p(-mid):q*Math.log(q/mid)+(1-q)*Math.log((1-q)/(1-mid));if(divergence>target)high=mid;else low=mid;}
+  return high;
+}
+function gllpRate(q,delta=1,fec=1.16) {return delta<=0||q/delta>=.5?0:Math.max(0,delta*(1-h2(q/delta))-fec*h2(q));}
+
+function binomialInterval(successes, trials, eps=1e-6) {
+  if(!Number.isSafeInteger(trials)||trials<1||!Number.isSafeInteger(successes)||successes<0||successes>trials||!(eps>0&&eps<1)) throw new RangeError('Invalid confidence interval');
+  const q=successes/trials,budget=Math.log(2/eps)/trials;
+  const kl=p=>(q===0?0:q*Math.log(q/p))+(q===1?0:(1-q)*Math.log((1-q)/(1-p)));
+  let lo=0,hi=q;
+  for(let i=0;i<60;i++){const mid=(lo+hi)/2;if(kl(mid)>budget)lo=mid;else hi=mid;}
+  const lower=q===0?0:lo;lo=q;hi=1;
+  for(let i=0;i<60;i++){const mid=(lo+hi)/2;if(kl(mid)>budget)hi=mid;else lo=mid;}
+  return [lower,q===1?1:hi];
+}
+
+// Source-replacement dual witness for the standard B92 filter (gamma=beta).
+// Each witness is an operator upper bound, so incomplete minimization only
+// reduces yield. IID confidence intervals are NOT a coherent-attack proof.
+function b92PhaseBound({source='ideal',pulses,detected,sifted,errors,sample,eps=1e-6}) {
+  if(source!=='ideal')return {supported:false,phaseUpper:.5,reason:'B92 weak-coherent-source security requires additional tagging/decoy analysis.'};
+  if(!sample||!sifted)return {supported:false,phaseUpper:.5,reason:'Insufficient B92 observations.'};
+  const a=(1-1/Math.sqrt(2))/2,b=1-a,ab=Math.sqrt(a*b);
+  const conclusive=binomialInterval(sifted,pulses,eps/3),loss=binomialInterval(pulses-detected,pulses,eps/3);
+  const qInterval=binomialInterval(errors,sample,eps/3),errorUpper=qInterval[1]*conclusive[1];
+  const eigen=(u,v,z)=>(u+v)/2+Math.hypot((u-v)/2,z);
+  function witness(coefficients) {
+    const [le,lc,ll,la]=coefficients,z=le*ab/2;
+    const identity=Math.max(
+      eigen(-lc*a-le*a/2,-lc*b-la-le*b/2,z),
+      eigen(b-lc*b-le*b/2,a-lc*a-la-le*a/2,z),-ll,-ll-la
+    )+1e-11*(1+coefficients.reduce((sum,x)=>sum+Math.abs(x),0));
+    return {joint:identity+le*errorUpper+lc*conclusive[lc>=0?1:0]+ll*loss[ll>=0?1:0]+la*a,identity};
+  }
+  let best={joint:Infinity};
+  // Bounded deterministic convex coordinate search; no optimum is asserted.
+  for(const initial of [[4,0,1,0],[16,-2,4,-1],[64,-8,16,0]]) {
+    let coefficients=[...initial];
+    for(let round=0;round<16;round++)for(let axis=0;axis<4;axis++) {
+      let lo=axis===0?0:-256,hi=256;
+      for(let step=0;step<38;step++) {
+        const x=lo+(hi-lo)/3,y=hi-(hi-lo)/3;
+        const cx=[...coefficients],cy=[...coefficients];cx[axis]=x;cy[axis]=y;
+        if(witness(cx).joint<witness(cy).joint)hi=y;else lo=x;
+      }
+      const next=[...coefficients];next[axis]=(lo+hi)/2;
+      if(witness(next).joint<witness(coefficients).joint)coefficients=next;
+    }
+    const candidate=witness(coefficients);
+    if(candidate.joint<best.joint)best={...candidate,coefficients};
+  }
+  // Refine coupled coefficients: coordinate search alone can stall on the
+  // nondifferentiable eigenvalue envelope. Every returned point is still a witness.
+  const score=c=>c[0]<0||c.some(x=>!Number.isFinite(x)||Math.abs(x)>1e6)?Infinity:witness(c).joint;
+  let simplex=[best.coefficients,...best.coefficients.map((_,axis)=>best.coefficients.map((x,i)=>x+(i===axis?Math.max(1,Math.abs(x)*.2):0)))];
+  for(let iteration=0;iteration<1000;iteration++) {
+    simplex.sort((x,y)=>score(x)-score(y));
+    const center=simplex[0].map((_,axis)=>simplex.slice(0,4).reduce((sum,c)=>sum+c[axis],0)/4);
+    const point=f=>center.map((x,axis)=>x+f*(center[axis]-simplex[4][axis]));
+    const reflected=point(1),value=score(reflected);
+    if(value<score(simplex[0])){const expanded=point(2);simplex[4]=score(expanded)<value?expanded:reflected;}
+    else if(value<score(simplex[3]))simplex[4]=reflected;
+    else {
+      const contracted=value<score(simplex[4])?point(.5):point(-.5);
+      if(score(contracted)<Math.min(value,score(simplex[4])))simplex[4]=contracted;
+      else simplex=simplex.map((c,i)=>i?c.map((x,axis)=>(x+simplex[0][axis])/2):c);
+    }
+  }
+  simplex.sort((x,y)=>score(x)-score(y));
+  if(score(simplex[0])<best.joint)best={...witness(simplex[0]),coefficients:simplex[0]};
+  if(best.joint < -1e-8)return {supported:false,phaseUpper:.5,reason:'Observed intervals are inconsistent with the assumed B92 qubit model.'};
+  const joint=Math.max(0,best.joint),phaseUpper=conclusive[0]>0?Math.min(.5,joint/conclusive[0]):.5;
+  return {supported:true,phaseUpper,phaseJointUpper:joint,conclusiveInterval:conclusive,lossInterval:loss,errorJointUpper:errorUpper,witness:{coefficients:best.coefficients,identity:best.identity},confidenceFailure:eps,model:'IID single-photon B92 operator witness'};
+}
+
+// Exact binomial upper tail, summed outward from its mode to avoid factorial overflow.
+function detectionProbability(n,p,threshold=0) {
+  if(!Number.isSafeInteger(n)||n<0||!Number.isFinite(p)||p<0||p>1||!Number.isFinite(threshold)||threshold<0||threshold>1) throw new RangeError('Invalid binomial parameters');
+  const k=Math.floor(n*threshold);
+  if(n===0||k>=n||p===0)return 0;if(p===1)return 1;
+  if(k===0)return -Math.expm1(n*Math.log1p(-p));
+  const mode=Math.floor((n+1)*p);
+  if(k>=mode) {
+    const first=k+1,terms=Math.min(first,n-first);
+    let logChoose=0;
+    for(let i=1;i<=terms;i++)logChoose+=Math.log(n-terms+i)-Math.log(i);
+    const logMass=logChoose+first*Math.log(p)+(n-first)*Math.log1p(-p);
+    let relative=1,sum=1;
+    for(let i=first;i<n;i++){relative*=(n-i)/(i+1)*p/(1-p);sum+=relative;if(relative<sum*1e-16)break;}
+    return Math.min(1,Math.exp(logMass)*sum);
+  }
+  let total=1,tail=mode>k?1:0,weight=1;
+  for(let i=mode;i>0;i--){weight*=i/(n-i+1)*(1-p)/p;total+=weight;if(i-1>k)tail+=weight;if(weight<total*1e-16)break;}
+  weight=1;
+  for(let i=mode;i<n;i++){weight*=(n-i)/(i+1)*p/(1-p);total+=weight;if(i+1>k)tail+=weight;if(weight<total*1e-16)break;}
+  return Math.min(1,Math.max(0,tail/total));
+}
+function expectedStats(input={}) {
+  const c=normalize(input),t=10**(-c.lossDb/10),p=c.attack==='ir'?c.interception:0,e=c.noise;
+  const conclusive=c.protocol==='BB84'?.5:.25+p/8+e*(.5-p/4);
+  const qber=c.protocol==='BB84'?e+p/4-e*p/2:(p/8+e/2-e*p/4)/conclusive;
+  const signal=c.source==='ideal'?t*c.efficiency:1-Math.exp(-c.mu*t*c.efficiency);
+  const honestGain=signal+(1-signal)*c.darkCount;
+  // PNS keeps one photon; surviving photons reach Bob over Eve's lossless link.
+  let capacity=0,prob=Math.exp(-c.mu);
+  for(let n=1;n<100;n++){prob*=c.mu/n;if(n>=2)capacity+=prob*(1-(1-c.efficiency)**(n-1));}
+  const forward=c.attack==='pns'?(capacity?Math.min(1,signal/capacity):0):1;
+  const actualSignal=c.attack==='pns'?capacity*forward:signal;
+  const gain=actualSignal+(1-actualSignal)*c.darkCount;
+  const darkShare=gain?(1-actualSignal)*c.darkCount/gain:0;
+  const observedConclusive=(1-darkShare)*conclusive+darkShare*.5;
+  const observedQber=observedConclusive?((1-darkShare)*conclusive*qber+darkShare*.25)/observedConclusive:0;
+  return {qber:observedQber,conclusive:observedConclusive,gain,honestGain,signal,capacity,forward,multiPhotonProbability:1-Math.exp(-c.mu)*(1+c.mu)};
+}
+function compareProtocols(input={}) {
+  const results = ['BB84', 'B92'].map(protocol => simulate({...input, protocol}));
+  const eligible = results.filter(r=>['ACCEPT','ALERT'].includes(r.status)&&r.finalBits>0&&r.finalBits>=r.config.requiredBits&&!r.gainMismatch);
+  eligible.sort((a,b)=>b.finalBits-a.finalBits);
+  const winner=eligible[0],tied=winner&&eligible[1]?.finalBits===winner.finalBits;
+  return {
+    mode: 'comparison', results,
+    recommendation: winner&&!tied?winner.config.protocol:null,
+    reason: tied?'Both protocols meet the modeled target with equal estimated output; no yield winner.' : winner
+      ? `${winner.config.protocol} has the larger eligible estimated key budget (${winner.finalBits} bits). This compares modeled yield, not proof that its key is more secure. Both are instructional estimates; review each bound and its assumptions.`
+      : 'Neither protocol passes the modeled key-budget and channel checks. Increase the signal count, reduce noise/loss, or review source assumptions; no key is recommended.'
+  };
+}
+function interceptionCurve(input={},steps=20) {
+  if(!Number.isInteger(steps)||steps<1||steps>100)throw new RangeError('Curve steps must be 1..100');
+  return ['BB84','B92'].map(protocol=>({protocol,points:Array.from({length:steps+1},(_,i)=>{
+    const fraction=i/steps;
+    return {fraction,qber:expectedStats({...input,protocol,attack:'ir',interception:fraction}).qber};
+  })}));
+}
+function simulate(input={}) {
+  const c=normalize(input),expected=expectedStats(c);
+  const source=rng(c.seed,0x243f6a88),channel=rng(c.seed,0x85a308d3),bob=rng(c.seed,0x13198a2e),eve=rng(c.seed,0x03707344),sampling=rng(c.seed,0xa4093822);
+  const t=10**(-c.lossDb/10),bits=[],trace=[],audit=[],counts={pulses:c.pulses,emitted:0,vacuum:0,multiPhoton:0,detected:0,sifted:0,sample:0,keyBits:0,errors:0,siftedErrors:0};
+  for(let i=0;i<c.pulses;i++) {
+    let photons=1;
+    if(c.source==='wcp'){photons=-1;let product=1;do{photons++;product*=source();}while(product>Math.exp(-c.mu));}
+    if(photons)counts.emitted++;else counts.vacuum++;
+    if(photons>1)counts.multiPhoton++;
+    const aliceDraw=source(),aliceBit=aliceDraw<.5?0:1,basisDraw=source(),aliceBasis=c.protocol==='BB84'?(basisDraw<.5?0:1):aliceBit;
+    const signalDraw=channel(),darkDraw=channel(),noiseDraw=channel();
+    const bobBasisDraw=bob(),bobBasis=bobBasisDraw<.5?0:1,bobDraw=bob();
+    const eveForward=eve(),eveIntercept=eve(),eveBasisDraw=eve(),eveBasis=eveBasisDraw<.5?0:1,eveDraw=eve();
+    let stateBasis=aliceBasis,stateBit=c.protocol==='BB84'?aliceBit:0;
+    let signalProbability=1-(1-t*c.efficiency)**photons;
+    if(c.attack==='pns') signalProbability=photons>=2&&eveForward<expected.forward?1-(1-c.efficiency)**(photons-1):0;
+    const signal=signalDraw<signalProbability,dark=darkDraw<c.darkCount;
+    // Keep a bounded audit from the same trials; recording makes no extra RNG calls.
+    const event=i<128?{pulse:i+1,photons,aliceBit,aliceBasis,bobBasis,bobOutcome:null,bobBit:null,signal,darkOnly:!signal&&dark,detected:signal||dark,conclusive:false,error:false,sampled:false,status:'lost',signalProbability,noiseFlipped:signal&&noiseDraw<c.noise,draws:{aliceBit:aliceDraw,aliceBasis:basisDraw,bobBasis:bobBasisDraw,bobOutcome:bobDraw,signal:signalDraw,dark:darkDraw,noise:noiseDraw,eveInterception:eveIntercept,eveBasis:eveBasisDraw,eveOutcome:eveDraw,eveForward},eveAction:c.attack==='pns'?(photons>=2&&eveForward<expected.forward?'split':'block'):c.attack==='ir'&&eveIntercept<c.interception&&signal?'intercept':'none'}:null;
+    if(event){audit.push(event);if(i<32)trace.push(event);}
+    if(!signal&&!dark)continue;
+    counts.detected++;
+    if(c.attack==='ir'&&eveIntercept<c.interception){stateBit=eveBasis===stateBasis?stateBit:(eveDraw<.5?0:1);stateBasis=eveBasis;}
+    let measured=signal?(bobBasis===stateBasis?stateBit:(bobDraw<.5?0:1)):(bobDraw<.5?0:1);
+    if(signal&&noiseDraw<c.noise)measured^=1;
+    const conclusive=c.protocol==='BB84'?bobBasis===aliceBasis:measured===1;
+    if(event)Object.assign(event,{bobOutcome:measured,conclusive,status:conclusive?'kept':'discarded'});
+    if(!conclusive)continue;
+    const inferred=c.protocol==='BB84'?measured:1-bobBasis;
+    if(event)Object.assign(event,{bobBit:inferred,siftedIndex:bits.length,error:inferred!==aliceBit,status:inferred!==aliceBit?'error':'kept'});
+    const wrong=Number(inferred!==aliceBit);bits.push(wrong);counts.siftedErrors+=wrong;
+  }
+  counts.sifted=bits.length;counts.sample=Math.floor(bits.length*c.sampleFraction);
+  // Track only audited positions through the actual sample shuffle, not another sample.
+  const tracked=new Map(audit.filter(e=>e.conclusive).map(e=>[e.siftedIndex,e]));
+  for(let i=0;i<counts.sample;i++){
+    const draw=sampling(),j=i+Math.floor(draw*(bits.length-i));
+    const disclosed=tracked.get(j),moved=tracked.get(i);
+    if(disclosed)Object.assign(disclosed,{sampled:true,samplingDraw:draw,sampleOrder:i+1});
+    tracked.delete(i);tracked.delete(j);if(moved&&i!==j)tracked.set(j,moved);
+    [bits[i],bits[j]]=[bits[j],bits[i]];counts.errors+=bits[i];
+  }
+  counts.keyBits=counts.sifted-counts.sample;
+  const qber=counts.sample?counts.errors/counts.sample:0,qUpper=qberUpper(qber,counts.sample,c.eps),gain=counts.detected/c.pulses;
+  const delta=c.source==='wcp'?(gain?Math.max(0,1-expected.multiPhotonProbability/gain):0):1;
+  const gainMismatch=Math.abs(gain-expected.honestGain)>Math.sqrt(Math.log(2/c.eps)/(2*c.pulses));
+  const finitePenalty=2*Math.log2(1/c.eps),verification=34,authentication=64;
+  const privateFraction=delta>0&&qUpper/delta<.5?delta*(1-h2(qUpper/delta)):0;
+  const b92Bound=c.protocol==='B92'?b92PhaseBound({source:c.source,pulses:c.pulses,detected:counts.detected,sifted:counts.sifted,errors:counts.errors,sample:counts.sample,eps:c.eps}):null;
+  const privacy=c.protocol==='B92'?(b92Bound.supported?1-h2(b92Bound.phaseUpper):0):privateFraction;
+  const rawBudget=counts.keyBits*(privacy-1.16*h2(qber))-finitePenalty-verification-authentication;
+  const budget={privacyFraction:privacy,privacyBits:counts.keyBits*privacy,reconciliationLeakage:counts.keyBits*1.16*h2(qber),rawBudget,beforeChecks:counts.sample?Math.max(0,Math.floor(rawBudget)):0};
+  let finalBits=budget.beforeChecks;
+  let status='ACCEPT';const warnings=['Educational simulation only; no cryptographic keys or security certification.'];
+  if(c.protocol==='BB84'&&counts.sample&&qber>=.05)status='ALERT';
+  if(!counts.sample||!counts.keyBits||finalBits<c.requiredBits)status='INSUFFICIENT';
+  if(c.protocol==='BB84'&&counts.sample&&qber>.11){status='REJECT';finalBits=0;}
+  if(c.protocol==='B92') {
+    if(!b92Bound.supported){status=counts.sample?'UNSUPPORTED':'INSUFFICIENT';finalBits=0;warnings.push(b92Bound.reason);}
+    if(counts.sample&&qber>.15){status='REJECT';finalBits=0;}
+    warnings.push('B92 uses a single-photon IID phase-error witness with sampling intervals. Its finite-bit budget is instructional, not a composable proof against arbitrary coherent attacks.');
+    warnings.push('B92 detector losses are modeled as erasure; dark-only clicks as random qubit replacement. An illustrative 15% error alarm is additional to the key-budget check.');
+  }
+  if(c.attack==='pns')warnings.push('PNS blocks single photons and forwards multiphoton pulses; channel loss is replaced by a lossless Eve-to-Bob link.');
+  if(gainMismatch)warnings.push('Observed detection gain differs from the honest channel expectation.');
+  if(c.source==='wcp')warnings.push('No decoy states: all multiphoton emissions are conservatively tagged as compromised.');
+  if(c.darkCount)warnings.push('Dark-only detections produce random outcomes; simultaneous signal and dark clicks use the signal outcome.');
+  return {config:c,counts,trace,audit,budget,detected:counts.detected,sifted:counts.sifted,sample:counts.sample,keyBits:counts.keyBits,errors:counts.errors,qber,siftedQber:counts.sifted?counts.siftedErrors/counts.sifted:0,qUpper,b92Bound,expectedQber:expected.qber,expectedConclusive:expected.conclusive,gain,expectedGain:expected.honestGain,attackExpectedGain:expected.gain,gainMismatch,delta,finalBits,status,warnings,finitePenalty,verification,authentication,pipeline:{sent:c.pulses,detected:counts.detected,sifted:counts.sifted,sampled:counts.sample,remaining:counts.keyBits,final:finalBits},detectionProbability:detectionProbability(counts.sample,expected.qber,c.protocol==='BB84'?.11:.15)};
+}
+
+// Share configuration only. Each page runs the engine itself; no result is supplied in the link.
+function runFragment(settings) {
+  return '#qkd='+encodeURIComponent(JSON.stringify(normalize(settings)));
+}
+function readRunFragment(hash) {
+  if(!hash.startsWith('#qkd='))return null;
+  const input=JSON.parse(decodeURIComponent(hash.slice(5)));
+  if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Invalid shared settings');
+  const settings={};
+  for(const key of Object.keys(normalize()))if(Object.hasOwn(input,key))settings[key]=input[key];
+  return normalize(settings);
+}
+
+const el=id=>document.getElementById(id),simulationForm=el('simulation-form');
+let displayedRun;
+const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:3});
+const pct=n=>(100*n).toFixed(2)+'%';
+function showSimulation(settings) {
+  const r=simulate(settings);displayedRun=r;
+  el('error').hidden=true;el('check').textContent='Calculated locally from randomized pulse outcomes. Same seed and settings reproduce the run.';
+  el('run-label').textContent=`${r.config.protocol} · seed ${r.config.seed} · ${fmt(r.config.pulses)} pulse trials · noise ${pct(r.config.noise)} · ${r.config.attack}`;
+  el('sifted').textContent=fmt(r.counts.sifted);el('qber').textContent=r.counts.sample?pct(r.qber):'No test sample';
+  el('final').textContent=fmt(r.finalBits);el('outcome').textContent=r.status;
+  const steps=[
+    `${fmt(r.counts.pulses)} pulses → ${fmt(r.counts.detected)} detections → ${fmt(r.counts.sifted)} retained bits.`,
+    r.counts.sample?`${fmt(r.counts.errors)} observed errors ÷ ${fmt(r.counts.sample)} disclosed test bits = ${pct(r.qber)} QBER.`:'No disclosed test bits: QBER cannot be estimated from a sample.',
+    `${fmt(r.counts.sifted)} retained − ${fmt(r.counts.sample)} disclosed = ${fmt(r.counts.keyBits)} remaining raw bits.`,
+    `Modeled privacy allowance: ${fmt(r.counts.keyBits)} × ${r.budget.privacyFraction.toFixed(6)} = ${fmt(r.budget.privacyBits)} bits.`,
+    `Subtract reconciliation ${fmt(r.budget.reconciliationLeakage)}, finite-size ${fmt(r.finitePenalty)}, verification ${r.verification} and authentication ${r.authentication} bits → raw budget ${fmt(r.budget.rawBudget)}.`,
+    `Round down, clamp at zero and apply model checks → ${fmt(r.finalBits)} estimated final bits; ${r.status}. Target: ${r.config.requiredBits} bits. Status is a model outcome, not a security certificate.`
+  ];
+  el('calculation').replaceChildren(...steps.map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
+  el('warnings').textContent=r.warnings.join(' ');
+  el('dashboard').href=(location.protocol==='file:'?'./QKD Lab.html':'./')+runFragment(r.config);
+  const kept=r.audit.filter(e=>e.conclusive),sampled=kept.filter(e=>e.sampled),remaining=kept.filter(e=>!e.sampled);
+  el('trace-rule').textContent=r.config.protocol==='BB84'?'BB84: Alice prepares a random bit in Z (+) or X (×). A detected pulse is retained when Bob chose the same basis. Noise or interception can change the measured bit.':'B92: Alice encodes 0 as |0⟩ and 1 as |+⟩. Bob chooses Z or X. Only measurement outcome 1 is conclusive; its inferred bit is 1 − Bob’s basis index. This uses no basis-matching rule.';
+  el('preview-scope').textContent=`Preview: first ${r.audit.length} of ${fmt(r.config.pulses)} actual pulses; ${kept.length} retained, ${sampled.length} disclosed, ${remaining.length} remaining. Summary counts above cover the full run.`;
+  el('bits').replaceChildren(...[['Alice prepared',r.audit,'aliceBit'],['Alice retained',kept,'aliceBit'],['Bob retained',kept,'bobBit'],['Remaining raw Alice',remaining,'aliceBit'],['Remaining raw Bob',remaining,'bobBit']].flatMap(([label,events,key])=>{const dt=document.createElement('dt'),dd=document.createElement('dd'),code=document.createElement('code');dt.textContent=label;code.textContent=events.length?events.map(e=>e[key]).join(''):'No bits in this preview';dd.append(code);return[dt,dd];}));
+  el('trial-caption').textContent=`${r.config.protocol} · seed ${r.config.seed} · actual pulse records`;
+  el('trials').replaceChildren(...r.audit.map(e=>{
+    const row=document.createElement('tr');row.className=e.sampled?'disclosed':e.error?'error':'';
+    const decision=!e.detected?'Lost':!e.conclusive?(r.config.protocol==='B92'?'Inconclusive / discard':'Basis mismatch / discard'):(e.sampled?'Disclosed test':'Keep / raw')+(e.error?' · error':'');
+    const state=r.config.protocol==='BB84'?(e.aliceBasis?'X (×)':'Z (+)'):(e.aliceBit?'|+⟩':'|0⟩');
+    for(const value of [e.pulse,e.aliceBit,state,e.bobBasis?'X (×)':'Z (+)',e.bobOutcome??'—',e.bobBit??'—',decision,e.draws.aliceBit.toFixed(8),e.draws.noise.toFixed(8)]){const td=document.createElement('td');td.textContent=value;row.append(td);}return row;
+  }));
+}
+function runForm() {
+  if(!simulationForm.reportValidity())return;
+  try{showSimulation(Object.fromEntries([...new FormData(simulationForm)].map(([key,value])=>[key,['protocol','attack','source'].includes(key)?value:Number(value)])));}
+  catch(error){el('error').textContent=error.message;el('error').hidden=false;}
+}
+simulationForm.addEventListener('submit',event=>{event.preventDefault();runForm();});
+el('fresh-seed').addEventListener('click',()=>{simulationForm.elements.namedItem('seed').value=crypto.getRandomValues(new Uint32Array(1))[0];runForm();});
+el('repeat').addEventListener('click',()=>{if(displayedRun){const same=JSON.stringify(simulate(displayedRun.config))===JSON.stringify(displayedRun);el('check').textContent=same?'Verified: all pulse records, counts, QBER and estimated final bits match the displayed run exactly.':'Verification failed: results differ.';}});
+el('export').addEventListener('click',()=>{if(!displayedRun)return;const url=URL.createObjectURL(new Blob([JSON.stringify(displayedRun,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`simulation-${displayedRun.config.protocol}-seed-${displayedRun.config.seed}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+try{const shared=readRunFragment(location.hash);if(shared)for(const [key,value] of Object.entries(shared))simulationForm.elements.namedItem(key).value=value;runForm();}
+catch(error){el('error').textContent='Shared settings could not be loaded: '+error.message;el('error').hidden=false;}
+</script></body></html>

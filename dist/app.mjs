@@ -1,5 +1,6 @@
 import { simulate, compareProtocols, interceptionCurve, h2 } from './engine.mjs';
 import {mountScada} from './scada-ui.mjs';
+import {runFragment,readRunFragment} from './run-link.mjs';
 
 const $ = id => document.getElementById(id);
 const form = $('experiment');
@@ -94,6 +95,7 @@ function render(r) {
   $('announcement').textContent = `Experiment complete. ${r.status}. ${count(r.finalBits)} estimated final bits. Sample QBER ${r.counts.sample ? percent(r.qber) : 'unavailable'}.`;
 }
 function renderEvidence(r) {
+  $('open-simulation').href='./simulation.html'+runFragment(r.config);
   const records=r.audit,kept=records.filter(e=>e.conclusive),disclosed=kept.filter(e=>e.sampled),remaining=kept.filter(e=>!e.sampled);
   const bits=(events,key)=>events.length?events.map(e=>e[key]).join(''):'No bits in this preview';
   $('evidence-run').textContent=`${r.config.protocol} · seed ${r.config.seed} · ${count(r.config.pulses)} Monte Carlo trials · ${count(r.finalBits)} estimated final bits`;
@@ -285,5 +287,11 @@ $('download').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify({ model: 'QKD Lab educational simulation', limitation: 'Not a security certificate. Estimated bits only; no usable secret key.', ...result, ...(comparison ? {comparison} : {}) }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `qkd-${comparison ? 'comparison' : result.config.protocol.toLowerCase()}-seed-${result.config.seed}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+let sharedSettingsError='';
+try {
+  const shared=typeof location==='undefined'?null:readRunFragment(location.hash);
+  if(shared)for(const [key,value] of Object.entries(shared))$(key).value=value;
+}catch(error){sharedSettingsError='Shared settings could not be loaded: '+error.message;}
 syncControls(); run();
+if(sharedSettingsError){$('form-error').hidden=false;$('form-error').textContent=sharedSettingsError;}
 mountScada({getQkdConfig:getConfig,svgNode});
