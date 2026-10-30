@@ -31,6 +31,8 @@ test('offline dashboard integrates protocol comparisons, playback, SCADA control
   runInNewContext(script,context);
   assert.equal(elements.get('form-error').hidden,true,elements.get('form-error').textContent);
   assert.equal(elements.get('metric-bits').textContent,'649');
+  assert.equal(elements.get('candidate-total').textContent,'1');
+  assert.equal(elements.get('candidate-accepted').textContent,'1');
   assert.ok(!elements.has('open-colab'));
   assert.ok(!html.includes('monte-carlo-evidence'));
   assert.equal(elements.get('key-graph').children[0].role,'img');
@@ -50,6 +52,7 @@ test('offline dashboard integrates protocol comparisons, playback, SCADA control
   elements.get('protocol').value='compare'; submit();
   assert.equal(elements.get('form-error').hidden,true,elements.get('form-error').textContent);
   assert.equal(elements.get('comparison').hidden,false);
+  assert.equal(elements.get('candidate-total').textContent,'3');
   assert.match(elements.get('comparison-verdict').textContent,/Modeled choice: BB84/);
   assert.equal(elements.get('comparison-cards').children.length,2);
   assert.match(elements.get('key-graph-caption').textContent,/BB84: .*B92:/);

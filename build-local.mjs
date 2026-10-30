@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const read = name => readFileSync(new URL(name, import.meta.url), 'utf8');
-const script = ['dist/engine.mjs','dist/run-link.mjs','dist/scada.mjs','dist/scada-ui.mjs','dist/app.mjs']
+const script = ['dist/engine.mjs','dist/run-link.mjs','dist/candidate-counts.mjs','dist/scada.mjs','dist/scada-ui.mjs','dist/app.mjs']
   .map(name=>read(name).replace(/^import .*from '\.\/[^']+';\s*/gm,'').replace(/^export /gm,''))
   .join('\n');
 const check = spawnSync(process.execPath, ['--check', '--input-type=module'], { input: script, encoding: 'utf8' });

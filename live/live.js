@@ -1,3 +1,4 @@
+import {liveCandidateCounts} from '/candidate-counts.mjs';
 const el=id=>document.getElementById(id);
 // Re-enter the role when a participant opens a different invitation in this tab.
 window.addEventListener('hashchange',()=>location.reload());
@@ -67,6 +68,8 @@ function phase(){
 }
 function render(){
   const s=state,last=s.rounds.at(-1),eve=credentials.role==='attacker';
+  const candidateCounts=liveCandidateCounts(s.rounds);
+  for(const [key,value] of Object.entries(candidateCounts))el('candidate-'+key).textContent=value;
   el('round-label').textContent=`${s.protocol} · ${s.rounds.length} completed / 30`;
   el('join').hidden=s.joined;
   el('telemetry-file').disabled=s.running||s.rounds.length>0;

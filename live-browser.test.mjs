@@ -23,6 +23,7 @@ try {
       return route.fulfill({status,contentType:'application/json',body:JSON.stringify(result)});
     }
     const file=path.slice(1);
+    if(file==='candidate-counts.mjs')return route.fulfill({contentType:'application/javascript',body:await readFile(new URL('dist/candidate-counts.mjs',import.meta.url),'utf8')});
     if(!['live.html','live.js','live.css'].includes(file))return route.fulfill({status:404,body:''});
     return route.fulfill({contentType:file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html',body:await readFile(new URL('live/'+file,import.meta.url),'utf8')});
   });
