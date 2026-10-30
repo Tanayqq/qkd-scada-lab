@@ -113,4 +113,4 @@ Open `notebooks/QKD_Colab_Demonstration.ipynb`, choose **Runtime → Run all**, 
 
 ## Candidate-key counters
 
-The channel dashboard counts completed protocol runs since page load (including the initial run). Compare mode adds one BB84 and one B92 candidate. Acceptance uses the same target, status and gain checks as the protocol comparison; rejection includes operational rejection and gain mismatch, with insufficient/unsupported output separate. The live demo counts completed rounds: accepted, rejected (alarm), or clean but held for recovery. Categories sum to the total. Accepted budgets are simulated candidates, not certified secret keys. Counters do not change the engine or Colab results.
+The main dashboard omits candidate-key totals; its completed 32-pulse preview shows kept/discarded/lost counts and Alice/Bob bit sequences. The live demo counts completed rounds: accepted, rejected (alarm), or clean but held for recovery. Categories sum to the total. Accepted budgets are simulated candidates, not certified secret keys. Counters do not change the engine or Colab results.

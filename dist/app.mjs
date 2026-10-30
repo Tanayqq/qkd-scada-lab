@@ -1,7 +1,7 @@
 import { simulate, compareProtocols, interceptionCurve, h2 } from './engine.mjs';
 import {mountScada} from './scada-ui.mjs';
 import {readRunFragment} from './run-link.mjs';
-import {channelCandidateCounts,pulsePreviewCounts} from './candidate-counts.mjs';
+import {pulsePreviewCounts} from './candidate-counts.mjs';
 
 const $ = id => document.getElementById(id);
 const form = $('experiment');
@@ -37,8 +37,6 @@ function barRow(label, value, max, extra = '') {
   return row;
 }
 function render(r) {
-  const candidateCounts=channelCandidateCounts(history);
-  for(const [key,value] of Object.entries(candidateCounts))$('candidate-'+key).textContent=count(value);
   resetTrace();
   const c = r.config;
   $('run-description').textContent = `RUN ${String(history.length).padStart(2, '0')} / ${c.protocol} / ${count(c.pulses)} pulses / seed ${c.seed}`;
