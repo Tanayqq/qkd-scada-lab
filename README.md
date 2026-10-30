@@ -107,3 +107,9 @@ Shared state lives in private Vercel Blob storage, read without CDN caching. Con
 
 Open `simulation.html` (or `/simulation.html` on the hosted demo). Run an experiment, inspect the actual pulse records and arithmetic, then click **Open matching dashboard**. The link carries only settings and the seed; the dashboard runs the same engine again. From the dashboard evidence panel, **Open simulation in a separate tab** carries the displayed protocol's settings in the reverse direction. This demonstrates the calculation path and reproducibility, not independent verification by another implementation. The raw bit preview covers at most 128 pulses; full-run counters cover every pulse. Final output is an estimated length, not an extracted secret key.
 
+# Run the same simulation in Google Colab
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Tanayqq/qkd-scada-lab/blob/main/notebooks/QKD_Colab_Demonstration.ipynb)
+
+Open `notebooks/QKD_Colab_Demonstration.ipynb`, choose **Runtime → Run all**, and use the generated **Open matching application dashboard** link. The notebook runs an embedded, inspectable snapshot of the same JavaScript engine in a separate Node.js process; Python supplies the notebook controls and displays the calculated output. Only inputs and seed are sent in the dashboard link. It is a portability/reproducibility demonstration, not an independent implementation or a real secure-key extractor. It includes pulse evidence, key-budget arithmetic, repeatability checks, four ideal-model behaviour checks and optional comparison against an exported application JSON. The six executable cells were checked locally; a Colab runtime is required for the optional Colab file-upload dialog. Regenerate the snapshot after changing the engine. No application hosting changes are needed.
+
