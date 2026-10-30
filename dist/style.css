@@ -7,3 +7,5 @@
 
 
 
+
+.trace-sequences{margin-top:20px;padding:18px;background:var(--soft);border:1px solid var(--line);border-radius:6px}.trace-sequences h3{font-size:15px;margin:0 0 14px}.trace-sequences dl{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;font-size:12px}.trace-sequences dt{color:var(--muted)}.trace-sequences dd{margin:0;min-width:0}.trace-sequences code{font:14px/1.8 Consolas,monospace;overflow-wrap:anywhere}@media(max-width:500px){.trace-sequences dl{grid-template-columns:1fr;gap:6px}.trace-sequences dd{margin-bottom:10px}}

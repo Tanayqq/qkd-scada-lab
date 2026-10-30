@@ -179,6 +179,8 @@ function pauseTrace() {
   tracePlaying=false;traceEpoch++;$('trace-play').textContent=traceIndex>=result?.trace.length?'Replay photons':'Play photons';
 }
 function resetTrace() {
+  $('trace-sequences').hidden=true;
+  for(const id of ['trace-prepared','trace-sifted-alice','trace-sifted-bob'])$(id).textContent='';
   $('trace-summary').hidden=true;$('trace-summary').textContent='';
   pauseTrace();traceIndex=0;$('trace-play').textContent='Play photons';
   $('trace-status').textContent='Ready: play or step through the first 32 pulses of the displayed run.';
@@ -203,6 +205,11 @@ function advanceTrace() {
     pauseTrace();const p=pulsePreviewCounts(result.trace);
     $('trace-summary').textContent=`Preview complete: ${p.total} transmitted pulses · ${p.kept} kept / sifted · ${p.discarded} discarded · ${p.lost} lost. Of the kept bits: ${p.errors} disagreements, ${p.disclosed} disclosed for testing and ${p.kept-p.disclosed} remaining raw bits. Kept + discarded + lost = ${p.total}. These are preview bits, not separate keys; full-run QBER and key estimates use all ${count(result.config.pulses)} pulses.`;
     $('trace-summary').hidden=false;
+    const kept=result.trace.filter(e=>e.conclusive);
+    $('trace-prepared').textContent=result.trace.map(e=>e.aliceBit).join('');
+    $('trace-sifted-alice').textContent=kept.length?kept.map(e=>e.aliceBit).join(''):'No sifted bits';
+    $('trace-sifted-bob').textContent=kept.length?kept.map(e=>e.bobBit).join(''):'No sifted bits';
+    $('trace-sequences').hidden=false;
   }return true;
 }
 function playTrace() {
