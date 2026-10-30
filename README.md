@@ -16,11 +16,8 @@ For development, use Node.js 22 or newer: `node --test tests.mjs scada.test.mjs 
 
 ## Monte Carlo evidence for a guide demonstration
 
-The **Where did these key bits come from?** panel records the first 128 actual pulse trials from the same loop that computes the run counters. It shows Alice and Bob bit previews, the actual disclosed-sample membership, seeded random draws, full-run error counts and the mathematical budget terms behind the displayed estimate. Recording makes no additional random draws and preserves existing numerical results. For 100-pulse experiments, the audit covers every trial; for larger experiments it explicitly labels the preview as a subset. **Export run** includes unrounded draws, sample positions and budget terms.
+Open the Colab notebook separately and switch tabs manually during the demonstration. The detailed evidence panel and Colab link have been removed from the main application to keep it simple. Colab shows actual pulse outcomes, observed errors and the key-budget calculation; its matching-dashboard link carries only settings and seed. The engine still records up to 128 pulse audit events, and **Export run** includes those records and unrounded budget terms for optional JSON comparison. Removing the panel does not change the engine, photon animation, numerical results or SCADA model.
 
-Click **Repeat same seed** to recompute the displayed configuration and compare the complete result, including the trial audit and budget, for exact equality. **Next seed and rerun** retains that configuration, increments its seed and runs a new experiment, including both protocols when comparing. The bit strings are raw simulated observations before implemented reconciliation or privacy amplification; the final-key figure remains an instructional length estimate. The sensitivity curve is separately labeled as an analytic reference.
-
-Evidence checks reconstruct every count from full small-run audits under both protocols, source/detector conditions and disclosure fractions. The automated suite now contains 73 tests.
 
 ## SCADA lifecycle and intrusion monitoring
 
@@ -105,7 +102,7 @@ Shared state lives in private Vercel Blob storage, read without CDN caching. Con
 
 # Separate simulation walkthrough
 
-Open `simulation.html` (or `/simulation.html` on the hosted demo). Run an experiment, inspect the actual pulse records and arithmetic, then click **Open matching dashboard**. The link carries only settings and the seed; the dashboard runs the same engine again. From the dashboard evidence panel, **Open simulation in a separate tab** carries the displayed protocol's settings in the reverse direction. This demonstrates the calculation path and reproducibility, not independent verification by another implementation. The raw bit preview covers at most 128 pulses; full-run counters cover every pulse. Final output is an estimated length, not an extracted secret key.
+Open `simulation.html` (or `/simulation.html` on the hosted demo). Run an experiment, inspect the actual pulse records and arithmetic, then click **Open matching dashboard**. The link carries only settings and the seed; the dashboard runs the same engine again. The Colab notebook is opened separately for the guide demonstration; this earlier standalone walkthrough remains accessible directly. This demonstrates the calculation path and reproducibility, not independent verification by another implementation. The raw bit preview covers at most 128 pulses; full-run counters cover every pulse. Final output is an estimated length, not an extracted secret key.
 
 # Run the same simulation in Google Colab
 

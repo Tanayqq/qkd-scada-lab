@@ -31,10 +31,8 @@ test('offline dashboard integrates protocol comparisons, playback, SCADA control
   runInNewContext(script,context);
   assert.equal(elements.get('form-error').hidden,true,elements.get('form-error').textContent);
   assert.equal(elements.get('metric-bits').textContent,'649');
-  assert.match(elements.get('evidence-run').textContent,/BB84 · seed 42 · 10,000 Monte Carlo trials/);
-  assert.equal(elements.get('evidence-trials').children.length,128);
-  elements.get('evidence-repeat').click();
-  assert.match(elements.get('evidence-check').textContent,/Verified: seed 42 reproduces all trial records/);
+  assert.ok(!elements.has('open-colab'));
+  assert.ok(!html.includes('monte-carlo-evidence'));
   assert.equal(elements.get('key-graph').children[0].role,'img');
   assert.match(elements.get('sensitivity-caption').textContent,/Analytic intercept-resend reference/);
   elements.get('trace-step').click();
@@ -58,9 +56,6 @@ test('offline dashboard integrates protocol comparisons, playback, SCADA control
   elements.get('comparison-cards').children[1].children.at(-1).click();
   assert.equal(elements.get('protocol-label').textContent,'B92');
   assert.equal(elements.get('metric-bits').textContent,'0');
-  assert.match(elements.get('evidence-run').textContent,/B92 · seed 42/);
-  elements.get('evidence-repeat').click();
-  assert.match(elements.get('evidence-check').textContent,/Verified: seed 42/);
   elements.get('download').click();
   assert.deepEqual(exported.comparison.results.map(item=>item.config.protocol),['BB84','B92']);
   elements.get('attack').value='ir'; submit();
@@ -112,10 +107,4 @@ test('offline dashboard integrates protocol comparisons, playback, SCADA control
   assert.ok(exported.results[0].summary.deadlineMisses>0);
   elements.get('scada-protocol').value='BB84';elements.get('scada-attack').value='pns';elements.get('scada-attackStart').value='0';elements.get('scada-attackEnd').value='6';await scadaSubmit();elements.get('scada-export').click();
   assert.equal(exported.qkdConfig.source,'wcp');
-  const previousSeed=Number(elements.get('seed').value);
-  elements.get('evidence-next').click();
-  assert.equal(Number(elements.get('seed').value),(previousSeed+1)>>>0);
-  assert.match(elements.get('evidence-run').textContent,new RegExp(`seed ${(previousSeed+1)>>>0}`));
-  elements.get('evidence-repeat').click();
-  assert.match(elements.get('evidence-check').textContent,/Verified:/);
 });

@@ -1,6 +1,6 @@
 import { simulate, compareProtocols, interceptionCurve, h2 } from './engine.mjs';
 import {mountScada} from './scada-ui.mjs';
-import {runFragment,readRunFragment} from './run-link.mjs';
+import {readRunFragment} from './run-link.mjs';
 
 const $ = id => document.getElementById(id);
 const form = $('experiment');
@@ -90,39 +90,8 @@ function render(r) {
     const detail = document.createElement('p'); detail.textContent = `Sample QBER ${item.counts.sample ? percent(item.qber) : 'unavailable'} · ${count(item.config.pulses)} pulses · noise ${percent(item.config.noise)} · seed ${item.config.seed}`;
     card.append(title, bits, track, detail); return card;
   }));
-  renderEvidence(r);
   $('stale').hidden = true; $('download').disabled = false;
   $('announcement').textContent = `Experiment complete. ${r.status}. ${count(r.finalBits)} estimated final bits. Sample QBER ${r.counts.sample ? percent(r.qber) : 'unavailable'}.`;
-}
-function renderEvidence(r) {
-  $('open-simulation').href='./simulation.html'+runFragment(r.config);
-  const records=r.audit,kept=records.filter(e=>e.conclusive),disclosed=kept.filter(e=>e.sampled),remaining=kept.filter(e=>!e.sampled);
-  const bits=(events,key)=>events.length?events.map(e=>e[key]).join(''):'No bits in this preview';
-  $('evidence-run').textContent=`${r.config.protocol} · seed ${r.config.seed} · ${count(r.config.pulses)} Monte Carlo trials · ${count(r.finalBits)} estimated final bits`;
-  $('evidence-check').textContent='Repeat this seed to check that the same trials reproduce the displayed result. The buttons use this displayed run’s settings.';
-  $('evidence-scope').textContent=`First ${records.length} of ${count(r.config.pulses)} actual pulse trials: ${kept.length} retained, ${disclosed.length} disclosed and ${remaining.length} remaining raw bits. Full-run totals below include every trial.`;
-  for(const [id,value] of [['alice',bits(records,'aliceBit')],['sifted-alice',bits(kept,'aliceBit')],['sifted-bob',bits(kept,'bobBit')],['disclosed',bits(disclosed,'aliceBit')],['remaining-alice',bits(remaining,'aliceBit')],['remaining-bob',bits(remaining,'bobBit')]])$('evidence-'+id).textContent=value;
-  const decimal=value=>Number(value).toLocaleString('en-US',{maximumFractionDigits:3});
-  const b=r.budget;
-  const calculation=[
-    `${count(r.config.pulses)} sampled pulse trials produced ${count(r.detected)} detections and ${count(r.sifted)} retained bits.`,
-    `QBER = ${count(r.errors)} disagreements / ${count(r.sample)} disclosed test bits${r.sample?` = ${percent(r.qber)}`:'; no QBER sample is available'}. These are observed counts, not the expected-QBER reference.`,
-    `${count(r.sifted)} retained − ${count(r.sample)} disclosed = ${count(r.keyBits)} remaining raw bits.`,
-    `The ${r.config.protocol==='B92'?'B92 phase-error bound':'BB84 error bound and source tagging'} gives a modeled privacy fraction of ${decimal(b.privacyFraction)}: ${count(r.keyBits)} × ${decimal(b.privacyFraction)} = ${decimal(b.privacyBits)} bits before other costs.`,
-    `Subtract modeled reconciliation ${decimal(b.reconciliationLeakage)}, finite-size ${decimal(r.finitePenalty)}, verification ${r.verification} and authentication ${r.authentication} bits. Raw budget: ${decimal(b.rawBudget)}.`,
-    `Round down and clamp at zero: ${count(b.beforeChecks)} bits before channel checks. Final checked estimate: ${count(r.finalBits)} bits (${r.status}).${r.status==='UNSUPPORTED'?' This source is outside the implemented privacy-bound model.':r.status==='REJECT'?' The operational error check rejects this run.':''}`
-  ];
-  $('evidence-calculation').replaceChildren(...calculation.map(value=>{const li=document.createElement('li');li.textContent=value;return li;}));
-  $('evidence-table-caption').textContent=`${r.config.protocol}, seed ${r.config.seed}: first ${records.length} pulse trials from the displayed run`;
-  const draw=value=>Number(value).toFixed(8);
-  $('evidence-trials').replaceChildren(...records.map(e=>{
-    const row=document.createElement('tr');
-    const state=r.config.protocol==='B92'?(e.aliceBit?'|+⟩':'|0⟩'):e.aliceBasis?(e.aliceBit?'|−⟩':'|+⟩'):(e.aliceBit?'|1⟩':'|0⟩');
-    const decision=!e.detected?'Not detected':!e.conclusive?'Discarded':`${e.sampled?'Disclosed test bit':'Remaining raw bit'}${e.error?' · disagreement':''}`;
-    row.className=e.sampled?'evidence-sampled':e.error?'evidence-error':'';
-    const values=[e.pulse,`${e.aliceBit} / ${state}`,draw(e.draws.aliceBit),`${e.bobBasis?'X':'Z'} / ${draw(e.draws.bobBasis)}`,e.detected?`${e.bobOutcome} / ${e.conclusive?e.bobBit:'discard'}`:'No detection',`${draw(e.draws.signal)} / ${draw(e.draws.noise)}`,decision];
-    for(const value of values){const td=document.createElement('td');td.textContent=String(value);row.append(td);}return row;
-  }));
 }
 function renderComparison() {
   renderGraphs();
@@ -238,19 +207,6 @@ function playTrace() {
 $('trace-play').addEventListener('click',playTrace);
 $('trace-step').addEventListener('click',()=>{pauseTrace();advanceTrace();});
 $('trace-reset').addEventListener('click',resetTrace);
-$('evidence-repeat').addEventListener('click',()=>{
-  if(!result)return;
-  try {
-    const repeated=simulate(result.config),same=JSON.stringify(repeated)===JSON.stringify(result);
-    $('evidence-check').textContent=same?`Verified: seed ${result.config.seed} reproduces all trial records, all counters, QBER and the ${count(result.finalBits)}-bit estimate exactly.`:'Reproduction check failed. The displayed run and repeated calculation differ.';
-  }catch(error){$('evidence-check').textContent=`Reproduction check could not finish: ${error.message}`;}
-});
-$('evidence-next').addEventListener('click',()=>{
-  if(!result)return;
-  const settings={...result.config,protocol:comparison?'compare':result.config.protocol,seed:(result.config.seed+1)>>>0};
-  for(const [key,value] of Object.entries(settings))$(key).value=value;
-  syncControls();run();
-});
 function run() {
   $('form-error').hidden = true;
   if (!form.reportValidity()) return;
