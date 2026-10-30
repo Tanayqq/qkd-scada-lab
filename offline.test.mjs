@@ -48,6 +48,14 @@ test('offline dashboard integrates protocol comparisons, playback, SCADA control
   assert.equal(elements.get('trace-status').textContent,paused);
   elements.get('trace-reset').click();
   assert.equal(elements.get('trace-bits').children.length,0);
+  assert.equal(elements.get('trace-summary').hidden,true);
+  for(let i=0;i<31;i++)elements.get('trace-step').click();
+  assert.equal(elements.get('trace-summary').hidden,true);
+  elements.get('trace-step').click();
+  assert.equal(elements.get('trace-summary').hidden,false);
+  assert.match(elements.get('trace-summary').textContent,/32 transmitted pulses · 21 kept \/ sifted · 11 discarded · 0 lost/);
+  elements.get('trace-reset').click();
+  assert.equal(elements.get('trace-summary').hidden,true);
   const submit=()=>elements.get('experiment').listeners.submit({preventDefault(){}});
   elements.get('protocol').value='compare'; submit();
   assert.equal(elements.get('form-error').hidden,true,elements.get('form-error').textContent);

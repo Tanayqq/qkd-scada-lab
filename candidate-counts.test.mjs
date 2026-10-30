@@ -1,8 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {channelCandidateCounts,liveCandidateCounts} from './dist/candidate-counts.mjs';
+import {channelCandidateCounts,liveCandidateCounts,pulsePreviewCounts} from './dist/candidate-counts.mjs';
+import {simulate} from './dist/engine.mjs';
 import {createSession,act,advance,ROUND_MS} from './live/session.mjs';
 test('channel candidate totals separate accepted, rejected and ineligible budgets',()=>{
+  for(const protocol of ['BB84','B92']){
+    const run=simulate({protocol,seed:42}),p=pulsePreviewCounts(run.trace);
+    assert.equal(p.total,32);assert.equal(p.kept+p.discarded+p.lost,32);
+    assert.equal(p.kept,run.audit.slice(0,32).filter(e=>e.conclusive).length);
+    assert.ok(p.errors<=p.kept);assert.ok(p.disclosed<=p.kept);
+  }
   const base={config:{requiredBits:128},finalBits:200,gainMismatch:false};
   const runs=['ACCEPT','ALERT','REJECT','INSUFFICIENT','UNSUPPORTED'].map(status=>({...base,status}));
   runs.push({...base,status:'ACCEPT',gainMismatch:true},{...base,status:'ALERT',finalBits:127});

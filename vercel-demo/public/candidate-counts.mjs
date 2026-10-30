@@ -12,3 +12,7 @@ export function liveCandidateCounts(rounds) {
   for(const r of rounds){if(r.accepted)counts.accepted++;else if(r.alarm)counts.rejected++;else counts.recovery++;}
   return counts;
 }
+export function pulsePreviewCounts(events) {
+  const total=events.length,kept=events.filter(e=>e.conclusive).length,lost=events.filter(e=>!e.detected).length;
+  return {total,kept,discarded:total-kept-lost,lost,errors:events.filter(e=>e.conclusive&&e.error).length,disclosed:events.filter(e=>e.conclusive&&e.sampled).length};
+}

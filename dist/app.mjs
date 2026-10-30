@@ -1,7 +1,7 @@
 import { simulate, compareProtocols, interceptionCurve, h2 } from './engine.mjs';
 import {mountScada} from './scada-ui.mjs';
 import {readRunFragment} from './run-link.mjs';
-import {channelCandidateCounts} from './candidate-counts.mjs';
+import {channelCandidateCounts,pulsePreviewCounts} from './candidate-counts.mjs';
 
 const $ = id => document.getElementById(id);
 const form = $('experiment');
@@ -179,6 +179,7 @@ function pauseTrace() {
   tracePlaying=false;traceEpoch++;$('trace-play').textContent=traceIndex>=result?.trace.length?'Replay photons':'Play photons';
 }
 function resetTrace() {
+  $('trace-summary').hidden=true;$('trace-summary').textContent='';
   pauseTrace();traceIndex=0;$('trace-play').textContent='Play photons';
   $('trace-status').textContent='Ready: play or step through the first 32 pulses of the displayed run.';
   for(const id of ['trace-alice','trace-eve','trace-bob','trace-decision'])$(id).textContent='—';
@@ -198,7 +199,11 @@ function advanceTrace() {
   const motion=$('photon-motion');motion.style.animationDuration=`${1.7/(Number($('trace-speed').value)||1)}s`;
   motion.style.setProperty('--travel',event.detected?'540px':'245px');
   motion.setAttribute('class',`photon-motion motion-${traceIndex%2?'a':'b'} ${event.error?'motion-error':''}`);
-  if(traceIndex===result.trace.length)pauseTrace();return true;
+  if(traceIndex===result.trace.length){
+    pauseTrace();const p=pulsePreviewCounts(result.trace);
+    $('trace-summary').textContent=`Preview complete: ${p.total} transmitted pulses · ${p.kept} kept / sifted · ${p.discarded} discarded · ${p.lost} lost. Of the kept bits: ${p.errors} disagreements, ${p.disclosed} disclosed for testing and ${p.kept-p.disclosed} remaining raw bits. Kept + discarded + lost = ${p.total}. These are preview bits, not separate keys; full-run QBER and key estimates use all ${count(result.config.pulses)} pulses.`;
+    $('trace-summary').hidden=false;
+  }return true;
 }
 function playTrace() {
   if(tracePlaying){pauseTrace();return;}
