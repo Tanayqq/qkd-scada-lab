@@ -11,6 +11,8 @@
 
 
 .trace-sequences{margin-top:20px;padding:18px;background:var(--soft);border:1px solid var(--line);border-radius:6px}.trace-sequences h3{font-size:15px;margin:0 0 14px}.trace-sequences dl{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;font-size:12px}.trace-sequences dt{color:var(--muted)}.trace-sequences dd{margin:0;min-width:0}.trace-sequences code{font:14px/1.8 Consolas,monospace;overflow-wrap:anywhere}@media(max-width:500px){.trace-sequences dl{grid-template-columns:1fr;gap:6px}.trace-sequences dd{margin-bottom:10px}}
+
+.parameter-help{display:block;color:var(--muted);font-size:11px;font-weight:400;line-height:1.55;margin:6px 0 15px;letter-spacing:normal}#scada-lab .parameter-help{font-size:11px;margin:6px 0 0}#scada-lab .scada-check{flex-wrap:wrap}#scada-lab .scada-check .parameter-help{flex-basis:100%;margin-top:0}
 </style></head>
 <body>
 <a class="skip" href="#results">Skip to results</a>
@@ -19,13 +21,13 @@
 <div class="workspace">
 <aside class="controls" aria-labelledby="control-title"><div class="section-label">EXPERIMENT SETUP</div><h2 id="control-title">Build your channel.</h2><p class="muted">Choose a protocol, introduce an adversary, and observe what survives.</p>
 <form id="experiment">
-<label for="protocol">Protocol</label><select id="protocol" name="protocol"><option>BB84</option><option>B92</option><option value="compare">Compare BB84 and B92</option></select>
-<label for="pulses">Transmitted pulses</label><input id="pulses" name="pulses" type="number" min="100" max="1000000" step="1" value="10000" required>
-<label for="attack">Eavesdropping scenario</label><select id="attack" name="attack"><option value="none">No eavesdropper</option><option value="ir">Intercept &amp; resend</option><option value="pns">Photon-number splitting (PNS)</option></select>
-<label for="noise">Channel bit-flip probability <output id="noise-value" for="noise">5%</output></label><input id="noise" name="noise" type="range" min="0" max="0.5" step="any" value="0.05">
-<label for="interception">Intercept-resend fraction <output id="interception-value" for="interception">100%</output></label><input id="interception" name="interception" type="range" min="0" max="1" step="any" value="1">
-<details class="advanced"><summary>Channel &amp; source settings</summary><label for="lossDb">Channel loss (dB)</label><input id="lossDb" name="lossDb" type="number" min="0" max="60" step="any" value="0" required><label for="efficiency">Detector efficiency (0–1)</label><input id="efficiency" name="efficiency" type="number" min="0" max="1" step="any" value="1" required><label for="darkCount">Dark-count probability (0–1)</label><input id="darkCount" name="darkCount" type="number" min="0" max="1" step="any" value="0" required><label for="source">Photon source</label><select id="source" name="source"><option value="ideal">Ideal single photon</option><option value="wcp">Weak coherent pulses</option></select><label for="mu">Mean photons per pulse (μ)</label><input id="mu" name="mu" type="number" min="0.01" max="5" step="any" value="0.5" required></details>
-<details class="advanced"><summary>Estimation &amp; reproducibility</summary><label for="sampleFraction">Disclosed sample fraction (0–1)</label><input id="sampleFraction" name="sampleFraction" type="number" min="0.01" max="0.9" step="any" value="0.25" required><label for="eps">Parameter-estimation failure probability</label><input id="eps" name="eps" type="number" min="0.000000000001" max="0.1" step="any" value="0.000001" required><label for="requiredBits">Target estimated bits</label><input id="requiredBits" name="requiredBits" type="number" min="1" max="1000000" step="1" value="128" required><label for="seed">Random seed</label><input id="seed" name="seed" type="number" min="0" max="4294967295" step="1" value="42" required><p class="small muted">The same settings and seed reproduce the same experiment.</p></details>
+<label for="protocol">Protocol</label><select id="protocol" aria-describedby="protocol-help" name="protocol"><option>BB84</option><option>B92</option><option value="compare">Compare BB84 and B92</option></select><small id="protocol-help" class="parameter-help">(Choose BB84, B92 or a side-by-side comparison; each protocol keeps different measurement outcomes.)</small>
+<label for="pulses">Transmitted pulses</label><input id="pulses" aria-describedby="pulses-help" name="pulses" type="number" min="100" max="1000000" step="1" value="10000" required><small id="pulses-help" class="parameter-help">(Total pulses simulated; more pulses can improve statistical estimates. The animation previews only the first 32.)</small>
+<label for="attack">Eavesdropping scenario</label><select id="attack" aria-describedby="attack-help" name="attack"><option value="none">No eavesdropper</option><option value="ir">Intercept &amp; resend</option><option value="pns">Photon-number splitting (PNS)</option></select><small id="attack-help" class="parameter-help">(Choose how Eve interferes with the channel; this changes the simulated detections or errors.)</small>
+<label for="noise">Channel bit-flip probability <output id="noise-value" for="noise">5%</output></label><input id="noise" aria-describedby="noise-help" name="noise" type="range" min="0" max="0.5" step="any" value="0.05"><small id="noise-help" class="parameter-help">(Chance that channel noise flips a detected signal outcome; more noise usually means more errors.)</small>
+<label for="interception">Intercept-resend fraction <output id="interception-value" for="interception">100%</output></label><input id="interception" aria-describedby="interception-help" name="interception" type="range" min="0" max="1" step="any" value="1"><small id="interception-help" class="parameter-help">(Share of pulses Eve intercepts; applies only to intercept-resend. 100% means every pulse is targeted.)</small>
+<details class="advanced"><summary>Channel &amp; source settings</summary><label for="lossDb">Channel loss (dB)</label><input id="lossDb" aria-describedby="lossDb-help" name="lossDb" type="number" min="0" max="60" step="any" value="0" required><small id="lossDb-help" class="parameter-help">(How much the channel weakens the signal; higher loss usually means fewer detections.)</small><label for="efficiency">Detector efficiency (0–1)</label><input id="efficiency" aria-describedby="efficiency-help" name="efficiency" type="number" min="0" max="1" step="any" value="1" required><small id="efficiency-help" class="parameter-help">(Chance a single arriving photon is detected; higher efficiency usually retains more observations.)</small><label for="darkCount">Dark-count probability (0–1)</label><input id="darkCount" aria-describedby="darkCount-help" name="darkCount" type="number" min="0" max="1" step="any" value="0" required><small id="darkCount-help" class="parameter-help">(Chance of a detector click without a signal; false clicks can add random errors.)</small><label for="source">Photon source</label><select id="source" aria-describedby="source-help" name="source"><option value="ideal">Ideal single photon</option><option value="wcp">Weak coherent pulses</option></select><small id="source-help" class="parameter-help">(Choose ideal single photons or coherent pulses; the source affects detection and the key-bound assumptions.)</small><label for="mu">Mean photons per pulse (μ)</label><input id="mu" aria-describedby="mu-help" name="mu" type="number" min="0.01" max="5" step="any" value="0.5" required><small id="mu-help" class="parameter-help">(Average photons in a coherent pulse; higher values also increase multiphoton emissions. Used only for coherent pulses.)</small></details>
+<details class="advanced"><summary>Estimation &amp; reproducibility</summary><label for="sampleFraction">Disclosed sample fraction (0–1)</label><input id="sampleFraction" aria-describedby="sampleFraction-help" name="sampleFraction" type="number" min="0.01" max="0.9" step="any" value="0.25" required><small id="sampleFraction-help" class="parameter-help">(Share of sifted bits revealed to estimate errors; more testing leaves fewer bits for the key budget.)</small><label for="eps">Parameter-estimation failure probability</label><input id="eps" aria-describedby="eps-help" name="eps" type="number" min="0.000000000001" max="0.1" step="any" value="0.000001" required><small id="eps-help" class="parameter-help">(Allowed estimation-failure probability; a smaller value generally gives a more conservative key estimate.)</small><label for="requiredBits">Target estimated bits</label><input id="requiredBits" aria-describedby="requiredBits-help" name="requiredBits" type="number" min="1" max="1000000" step="1" value="128" required><small id="requiredBits-help" class="parameter-help">(Minimum estimated key length required to meet your target; it does not change the generated bit sequence.)</small><label for="seed">Random seed</label><input id="seed" aria-describedby="seed-help" name="seed" type="number" min="0" max="4294967295" step="1" value="42" required><small id="seed-help" class="parameter-help">(Selects the random sequence. Same seed and settings reproduce the run; changing it gives a fresh experiment.)</small><p class="small muted">The same settings and seed reproduce the same experiment.</p></details>
 <p id="form-error" class="form-error" role="alert" hidden></p><button class="run-button" type="submit"><span>Run experiment</span><span aria-hidden="true">↗</span></button><p class="small muted control-foot">Simulation only. No real quantum hardware or usable secret keys.</p>
 </form></aside>
 <main id="results" tabindex="-1">
@@ -516,6 +518,27 @@ function mountScada({ getQkdConfig, svgNode } = {}) {
   const defaults = { protocol: 'compare', duration: 60, pulseRate: 10000, postProcessingSec: .1, messageRate: 10, keyLifetime: 10, messagesPerKey: 50, poolCapacity: 100, deadlineSec: 2, networkDelaySec: .02, attack: 'none', attackStart: 20, attackEnd: 40, interception: 1, attackNoise: .25, authenticated: true, recoveryRounds: 2, alarmIncrease: .03, alarmProbability: .001, ...SCADA_DEFAULTS };
   defaults.protocol = 'compare';
   const attackLabels = { none: 'No attack', ir: 'Intercept & resend', pns: 'Photon-number splitting', noise: 'Noise burst', mitm: 'Man in the middle' };
+  const fieldHelp={
+    protocol:'Choose one protocol or compare both under the same channel settings.',
+    duration:'How long grid communication is simulated; longer runs include more messages and QKD rounds.',
+    pulseRate:'How fast pulses are produced; a higher rate can shorten the wait for each key block.',
+    messageRate:'How many messages arrive each second; more messages increase demand on the keys.',
+    attack:'Choose the disturbance or impersonation scenario during the attack window.',
+    attackStart:'Time when the selected attack starts; ignored when No attack is selected.',
+    attackEnd:'Time when the attack stops; recovery checks may delay communication restarting.',
+    authenticated:'Models identity checking; with it off, a MITM can go undetected even at low QBER.',
+    postProcessingSec:'Extra processing time after each pulse block; more time delays new key supply.',
+    keyLifetime:'Time a modeled key stays valid after creation; shorter lifetimes need fresher keys.',
+    messagesPerKey:'Maximum messages allowed with one key; a lower limit uses replacement keys faster.',
+    poolCapacity:'Maximum ready keys held in reserve; extra keys beyond this limit are discarded.',
+    deadlineSec:'Maximum time from message creation to delivery; late messages are dropped.',
+    networkDelaySec:'Travel time for a sent message; higher delay can cause expiry or deadline misses.',
+    interception:'Share of pulses Eve intercepts in the intercept-resend scenario; 1 means 100%.',
+    attackNoise:'Bit-flip probability during the noise-burst window; higher values cause more disturbance.',
+    recoveryRounds:'Clean eligible rounds needed before communication resumes after an alarm.',
+    alarmIncrease:'Required QBER rise above the honest baseline; 0.03 means 3 percentage points.',
+    alarmProbability:'Statistical cutoff for a QBER-rise alarm; smaller values require stronger evidence.'
+  };
   for (const [name, labelText, type, bounds, group] of fields) {
     const wrapper = document.createElement('div');
     const label = document.createElement('label'); label.htmlFor = `scada-${name}`; label.textContent = labelText;
@@ -524,6 +547,8 @@ function mountScada({ getQkdConfig, svgNode } = {}) {
     else { input.type = type; if (type === 'number') { [input.min, input.max, input.step] = bounds.map(String); input.required = true; } }
     if (type === 'checkbox') { input.checked = defaults[name]; wrapper.className = 'scada-check'; wrapper.append(input, label); }
     else { input.value = defaults[name]; wrapper.append(label, input); }
+    const help=document.createElement('small');help.id=`scada-${name}-help`;help.className='parameter-help';help.textContent=`(${fieldHelp[name]})`;
+    input.setAttribute('aria-describedby',help.id);wrapper.append(help);
     $(group === 'primary' ? 'primary-controls' : 'advanced-controls').append(wrapper);
   }
   let output = null, runs = [], selected = 0, snapshotIndex = 0, timer = null;

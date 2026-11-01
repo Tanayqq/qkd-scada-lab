@@ -32,6 +32,27 @@ export function mountScada({ getQkdConfig, svgNode } = {}) {
   const defaults = { protocol: 'compare', duration: 60, pulseRate: 10000, postProcessingSec: .1, messageRate: 10, keyLifetime: 10, messagesPerKey: 50, poolCapacity: 100, deadlineSec: 2, networkDelaySec: .02, attack: 'none', attackStart: 20, attackEnd: 40, interception: 1, attackNoise: .25, authenticated: true, recoveryRounds: 2, alarmIncrease: .03, alarmProbability: .001, ...SCADA_DEFAULTS };
   defaults.protocol = 'compare';
   const attackLabels = { none: 'No attack', ir: 'Intercept & resend', pns: 'Photon-number splitting', noise: 'Noise burst', mitm: 'Man in the middle' };
+  const fieldHelp={
+    protocol:'Choose one protocol or compare both under the same channel settings.',
+    duration:'How long grid communication is simulated; longer runs include more messages and QKD rounds.',
+    pulseRate:'How fast pulses are produced; a higher rate can shorten the wait for each key block.',
+    messageRate:'How many messages arrive each second; more messages increase demand on the keys.',
+    attack:'Choose the disturbance or impersonation scenario during the attack window.',
+    attackStart:'Time when the selected attack starts; ignored when No attack is selected.',
+    attackEnd:'Time when the attack stops; recovery checks may delay communication restarting.',
+    authenticated:'Models identity checking; with it off, a MITM can go undetected even at low QBER.',
+    postProcessingSec:'Extra processing time after each pulse block; more time delays new key supply.',
+    keyLifetime:'Time a modeled key stays valid after creation; shorter lifetimes need fresher keys.',
+    messagesPerKey:'Maximum messages allowed with one key; a lower limit uses replacement keys faster.',
+    poolCapacity:'Maximum ready keys held in reserve; extra keys beyond this limit are discarded.',
+    deadlineSec:'Maximum time from message creation to delivery; late messages are dropped.',
+    networkDelaySec:'Travel time for a sent message; higher delay can cause expiry or deadline misses.',
+    interception:'Share of pulses Eve intercepts in the intercept-resend scenario; 1 means 100%.',
+    attackNoise:'Bit-flip probability during the noise-burst window; higher values cause more disturbance.',
+    recoveryRounds:'Clean eligible rounds needed before communication resumes after an alarm.',
+    alarmIncrease:'Required QBER rise above the honest baseline; 0.03 means 3 percentage points.',
+    alarmProbability:'Statistical cutoff for a QBER-rise alarm; smaller values require stronger evidence.'
+  };
   for (const [name, labelText, type, bounds, group] of fields) {
     const wrapper = document.createElement('div');
     const label = document.createElement('label'); label.htmlFor = `scada-${name}`; label.textContent = labelText;
@@ -40,6 +61,8 @@ export function mountScada({ getQkdConfig, svgNode } = {}) {
     else { input.type = type; if (type === 'number') { [input.min, input.max, input.step] = bounds.map(String); input.required = true; } }
     if (type === 'checkbox') { input.checked = defaults[name]; wrapper.className = 'scada-check'; wrapper.append(input, label); }
     else { input.value = defaults[name]; wrapper.append(label, input); }
+    const help=document.createElement('small');help.id=`scada-${name}-help`;help.className='parameter-help';help.textContent=`(${fieldHelp[name]})`;
+    input.setAttribute('aria-describedby',help.id);wrapper.append(help);
     $(group === 'primary' ? 'primary-controls' : 'advanced-controls').append(wrapper);
   }
   let output = null, runs = [], selected = 0, snapshotIndex = 0, timer = null;
